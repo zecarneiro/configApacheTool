@@ -1,0 +1,29 @@
+    Configuração Apache
+
+NOTA: SEMPRE QUE CRIO UM PROJECTO NOVO DEVO SEGUIR ESTAS INSTRUÇÕES
+		SE O SERVIDOR NÃO ESTIVER A FUNCIONAR CORRECTAMENTE CORRER O SEGUINTE COMANDO: 
+		sudo a2enmod o_mod_que_desejo_activar depois ir para o ponto 6
+
+0 - Correr o seguinte comando para o cake
+  -> composer create-project --prefer-dist cakephp/app novo_projecto
+
+1 - Copiar e alterar o ficheiro apache_config.conf
+    -> sudo cp apache_config.conf /etc/apache2/sites-available/novo_arquivo.conf
+
+2 - Alterar o número da porta no apache_config.conf
+  -> Esse numero deve ser alerato de cada vez que crio um novo projecto
+  -> Este número esta lacalizado na linha <VirtualHost *:80> onde 80 é a porta a ser alterada
+
+3 - Indica o caminho da pasta do projecto usando o apache_config.conf
+  -> A linha onde esta "DocumentRoot CAMINHO" (sem "")
+  -> Para o carke devo introduzir webroot no final do caminho
+
+4 - Activar o novo site correndo o seguinte comando
+  -> sudo a2ensite novo_arquivo.conf
+    NOTA: Para desactivar devo usar o comando a2dissite
+
+5 - Adicionar a nova porta editando o ficheiro ports.conf adicionando o novo Listem Porta
+  -> sudo nano /etc/apache2/ports.conf e a nova linha deve ter Listen 900
+
+6 - Reiniciar o servidor
+  -> sudo service apache2 restart
