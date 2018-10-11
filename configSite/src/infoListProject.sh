@@ -1,6 +1,5 @@
 #!/bin/bash
 # Author: José M. C. Noronha
-# Date: 20/06/2018
 
 ### Global Variable ###
 declare homeFolder="$( echo $HOME )"

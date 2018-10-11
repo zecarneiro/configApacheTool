@@ -43,7 +43,7 @@ echo "
 Encoding=UTF-8
 Name=configSite
 Comment=configSite
-Exec=\"$pathOpt$pathApp$nameApp.exe\"
+Exec=\"$pathOpt$pathApp$nameApp\"
 Terminal=true
 Type=Application
 Icon=$pathOpt$pathApp$nameApp.png
@@ -56,7 +56,7 @@ chmod +x "$pathDestAtalho/$nameApp.desktop"
 sudo sed -i "s#PATH_WWW#$pathWWW#" "$pathOpt$pathApp$fileConficpp"
 
 # Compile App 
-sudo apt install g++ make git -y
+sudo apt install g++ make git python3 -y
 sudo g++ -Wall "$pathOpt$pathApp$fileConficpp" -o "$pathOpt$pathApp$nameApp.exe"
 
 # Set Permission to execute app
