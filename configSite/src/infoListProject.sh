@@ -3,9 +3,9 @@
 
 ### Global Variable ###
 declare homeFolder="$( echo $HOME )"
-declare fileToSave="$homeFolder/.infoProjectConfigSite"
-declare projectName="$2"
-declare -i port=$3
+declare fileToSave="$homeFolder/.$2"
+declare projectName="$3"
+declare -i port=$4
 declare redirectNull="/dev/null"
 
 ### FUNCTIONS ###
