@@ -210,5 +210,5 @@ bool AllApache::checkVirtualConfExist(string nameProject) {
     // Execute command
     output = this->classAllCommands.executeCommandsWithOutput(command.c_str());
 
-    return (output.length > 0 && output != "\n") ? true : false; 
+    return (output.length() > 0 && output != "\n") ? true : false; 
 }

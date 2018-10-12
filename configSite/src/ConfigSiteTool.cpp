@@ -148,13 +148,15 @@ void ConfigSiteTool::getInfoProject(int typeInfo, bool isNewProject) {
 
 	// Pede o número do porto
 	if ( (typeInfo == 2) | (typeInfo == -1) ) {
+		string porto;
 		printMessagePorto = (isNewProject) ? "Insert port: " : "Insert new port: ";
 		cout << printMessagePorto;
 		this->porto = this->getOlyInteger(errorPortoMessage);
 		this->clearCin();
 
 		// Pede o porto enquanto o portio indicado já esta a ser usado
-		while(this->verifyPort(this->porto)) {
+		porto = this->intToString(this->porto);
+		while(this->checkPortsUsed(porto)) {
 			cout << "Port inserted is used by other project." << endl;
 			cout << "Continue? (S/N): ";
 			getline(cin, confirm);
@@ -164,6 +166,7 @@ void ConfigSiteTool::getInfoProject(int typeInfo, bool isNewProject) {
 			} else if (confirm == "N" || confirm == "n") {
 				cout << printMessagePorto;
 				this->porto = this->getOlyInteger(errorPortoMessage);
+				porto = this->intToString(this->porto);
 			}
 			this->clearCin();
 		}

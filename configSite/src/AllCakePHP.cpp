@@ -16,7 +16,8 @@ AllCakePHP::AllCakePHP() {
 /**
  * Destructor
  */
-AllCakePHP::~AllCakePHP() {}
+AllCakePHP::~AllCakePHP() {
+}
 
 /**
  * Create new project

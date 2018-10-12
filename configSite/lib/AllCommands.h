@@ -2,6 +2,9 @@
  * Comando: g++ -Wall config.cpp -o config
  * nomestring.c_str() -> converte uma string em char c
 */
+#ifndef ALLCOMMANDS_H
+#define ALLCOMMANDS_H
+
 #include "../lib/includes.h"
 
 /* Definition to all necessary commands */
@@ -39,4 +42,7 @@ class AllCommands {
         void executeCommands(string);
         string executeCommandsWithOutput(const char*);
         void setPermission(string);
+        bool checkDirectory(string, string);
+        bool checkFile(string, string);
 };
+#endif // ALLCOMMANDS_H

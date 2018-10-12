@@ -2,7 +2,11 @@
  * Comando: g++ -Wall config.cpp -o config
  * nomestring.c_str() -> converte uma string em char c
 */
+#ifndef ALLAPACHE_H
+#define ALLAPACHE_H
+
 #include "../lib/includes.h"
+#include "../lib/AllCommands.h"
 
 /* Definition to all necessary apache config */
 class AllApache {
@@ -35,3 +39,5 @@ class AllApache {
         void copyVirtualConf(string);
         bool checkVirtualConfExist(string);
 };
+
+#endif // ALLAPACHE_H
