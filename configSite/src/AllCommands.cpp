@@ -152,7 +152,7 @@ void AllCommands::setPermission(string path) {
 bool AllCommands::checkDirectory(string path, string nameDirectory) {
     string fullPath = "\"" + path + nameDirectory + "\"";
     string command = "./" + FUNCTIONSHELL + " -existFD " + fullPath;
-    return (this->executeCommandsWithOutput(command) == "1") ? true : false;
+    return (this->executeCommandsWithOutput(command.c_str()) == "1") ? true : false;
 }
 
 /**
@@ -161,5 +161,5 @@ bool AllCommands::checkDirectory(string path, string nameDirectory) {
 bool AllCommands::checkFile(string path, string nameFile) {
     string fullPath = "\"" + path + nameFile + "\"";
     string command = "./" + FUNCTIONSHELL + " -existFD " + fullPath;
-    return (this->executeCommandsWithOutput(command) == "1") ? true : false;
+    return (this->executeCommandsWithOutput(command.c_str()) == "1") ? true : false;
 }

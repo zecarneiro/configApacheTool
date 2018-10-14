@@ -16,13 +16,12 @@ AllCakePHP::AllCakePHP() {
 /**
  * Destructor
  */
-AllCakePHP::~AllCakePHP() {
-}
+AllCakePHP::~AllCakePHP() {}
 
 /**
  * Create new project
  */
-void AllCakePHP::newProject(string path, string nameProject) {
+void AllCakePHP::newProjectCakePHP(string path, string nameProject) {
     string fullPath = "\"" + path + "/" + nameProject + "\"";
     string command = this->newProjectCmd + " " + fullPath;
 
@@ -39,7 +38,7 @@ void AllCakePHP::newProject(string path, string nameProject) {
 /**
  * Config existing project
  */
-void AllCakePHP::configProject(string path, string nameProject) {
+void AllCakePHP::configProjectCakePHP(string path, string nameProject) {
     string fullPath = "\"" + path + "/" + nameProject + "\"";
     string command = this->configProjectCmd + " " + path;
 
@@ -53,7 +52,7 @@ void AllCakePHP::configProject(string path, string nameProject) {
 /**
  * Update existng project
  */
-void AllCakePHP::updateProject(string path, string nameProject) {
+void AllCakePHP::updateProjectCakePHP(string path, string nameProject) {
     string fullPath = "\"" + path + "/" + nameProject + "\"";
     string command = this->updateProjectCmd + " " + path;
 

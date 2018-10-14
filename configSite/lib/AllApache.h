@@ -10,7 +10,7 @@
 
 /* Definition to all necessary apache config */
 class AllApache {
-    protected:
+    private:
         string enableSiteCmd;
         string disableSiteCmd;
         string restartApacheCmd;
@@ -28,16 +28,16 @@ class AllApache {
         ~AllApache();
 
         void setGroupApache(string);
-        void reloadRestart(int);
-        void setPort(string, string);
-        void unsetPort(string);
-        void setPath(string, string);
-        void deleteVirtualConfFile(string);
-        bool checkPortsUsed(string);
-        void enableSite(string);
-        void disableSite(string);
-        void copyVirtualConf(string);
-        bool checkVirtualConfExist(string);
+        void reloadRestartApache(int);
+        void setPortApache(string, string);
+        void unsetPortApache(string);
+        void setPathApache(string, string);
+        void deleteVirtualConfFileApache(string);
+        bool checkPortsUsedApache(string);
+        void enableSiteApache(string);
+        void disableSiteApache(string);
+        void copyVirtualConfApache(string);
+        bool checkVirtualConfExistApache(string);
 };
 
 #endif // ALLAPACHE_H

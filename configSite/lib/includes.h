@@ -23,6 +23,6 @@ const string PATHIDENTIFY = "FULL_PATH_PROJECT";
 const string PATHWWW = "PATH_WWW";
 const string LEVELPERMISSION = "777";
 const string INFOPROJECTAPACHE = "infoProjectApache.sh";
-const string FUNCTIONSHELL = APPFOLDER + "functions.sh"
+const string FUNCTIONSHELL = APPFOLDER + "functions.sh";
 
 #endif // INCLUDE_H

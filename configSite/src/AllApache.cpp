@@ -34,7 +34,7 @@ void AllApache::setGroupApache(string fullPath) {
 /**
  * Check if Port is defined on port.conf
  */
-bool AllApache::checkPortsUsed(string port) {
+bool AllApache::checkPortsUsedApache(string port) {
 	bool portIsUsed = false;
 	string outputToCompared = "Listen " + port;
 	string output, command;
@@ -72,7 +72,7 @@ bool AllApache::checkPortsUsed(string port) {
 /**
  * Reload/Restart Apache
  */
-void AllApache::reloadRestart(int option) {
+void AllApache::reloadRestartApache(int option) {
     string command;
     switch (option) {
         case 0:
@@ -93,7 +93,7 @@ void AllApache::reloadRestart(int option) {
 /**
  * Set Port for apache
  */
-void AllApache::setPort(string port, string nameProject) {
+void AllApache::setPortApache(string port, string nameProject) {
     string command = " -i 's/" + PORTOIDENTIFY + "/" + port + "/' ";
 
     // Get sed command
@@ -108,7 +108,7 @@ void AllApache::setPort(string port, string nameProject) {
     command += this->apacheSitesAvailable + nameProject + this->extensionVirtualConf;
 
     // if port is not defined, set the port
-	if (!this->checkPortsUsed(port)) {
+	if (!this->checkPortsUsedApache(port)) {
         // Construct command
         // Ports conf : sudo sed -i "/Listen 80/a\\Listen PORTOPROJECTO" ports.conf
         string commandPortConf = " -i \"/Listen 80/a\\\\Listen " + port + "\" ";
@@ -125,7 +125,7 @@ void AllApache::setPort(string port, string nameProject) {
 /**
  * Unset Port, Remove port from port.conf
  */
-void AllApache::unsetPort(string port) {
+void AllApache::unsetPortApache(string port) {
     string command = "-i /Listen " + port + "/d" + " " + this->apachePort;
     command = this->classAllCommands.getCommandSed(command);
     command = this->classAllCommands.getCommandSudo(command);
@@ -137,7 +137,7 @@ void AllApache::unsetPort(string port) {
 /**
  * Set Path for apache
  */
-void AllApache::setPath(string path, string nameProject) {
+void AllApache::setPathApache(string path, string nameProject) {
     string webrootFolder = "webroot/";
     string command = " -i \"s#" +  PATHIDENTIFY + "#" + path + "/" + nameProject;
     command += "/" + webrootFolder + "#\" ";
@@ -155,7 +155,7 @@ void AllApache::setPath(string path, string nameProject) {
 /**
  * Delete Virtual conf file
  */
-void AllApache::deleteVirtualConfFile(string nameProject) {
+void AllApache::deleteVirtualConfFileApache(string nameProject) {
     string command = this->apacheSitesAvailable + nameProject + this->extensionVirtualConf;
     command = this->classAllCommands.getCommandDel(command);
     command = this->classAllCommands.getCommandSudo(command);
@@ -167,7 +167,7 @@ void AllApache::deleteVirtualConfFile(string nameProject) {
 /**
  * Enable Site
  */
-void AllApache::enableSite(string nameProject) {
+void AllApache::enableSiteApache(string nameProject) {
     string command = this->enableSiteCmd + " " + nameProject + this->extensionVirtualConf;
     command = this->classAllCommands.getCommandSudo(command);
     
@@ -175,13 +175,13 @@ void AllApache::enableSite(string nameProject) {
     this->classAllCommands.executeCommands(command);
 
     // Reload and Restart Apache
-    this->reloadRestart(-1);
+    this->reloadRestartApache(-1);
 }
 
 /**
  * Disable Site
  */
-void AllApache::disableSite(string nameProject) {
+void AllApache::disableSiteApache(string nameProject) {
     string command = this->disableSiteCmd + " " + nameProject + this->extensionVirtualConf;
     command = this->classAllCommands.getCommandSudo(command);
     
@@ -189,10 +189,10 @@ void AllApache::disableSite(string nameProject) {
     this->classAllCommands.executeCommands(command);
 
     // Reload and Restart Apache
-    this->reloadRestart(-1);
+    this->reloadRestartApache(-1);
 }
 
-void AllApache::copyVirtualConf(string nameProject) {
+void AllApache::copyVirtualConfApache(string nameProject) {
     string command = this->classAllCommands.getCommandCopy(APACHEVIRTUALCONF);
     command = this->classAllCommands.getCommandSudo(command);
     command += this->apacheSitesAvailable + nameProject + this->extensionVirtualConf;
@@ -201,7 +201,7 @@ void AllApache::copyVirtualConf(string nameProject) {
     this->classAllCommands.executeCommands(command);
 }
 
-bool AllApache::checkVirtualConfExist(string nameProject) {
+bool AllApache::checkVirtualConfExistApache(string nameProject) {
     string command, output;
 
     command = "ls " + this->apacheSitesAvailable;

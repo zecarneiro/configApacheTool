@@ -29,22 +29,6 @@ void ConfigSiteTool::clearCin(){
 }
 
 /**
- * Print Menu
- */
-void ConfigSiteTool::printMenu() {
-	cout << "\n Options 1, 2, 3 and 6 also activate project on apache !!!\n\n";
-	cout << "1 - Create new project" << endl;
-	cout << "2 - Config existing project(Run composer install)" << endl;
- 	cout << "3 - Change port for an project(For activated project)" << endl;
- 	cout << "4 - Disable an existing project(Not delete project folder)" << endl;
- 	cout << "5 - Update existing project" << endl;
- 	cout << "6 - Only activate project(On apache)" << endl;
-	cout << "7 - Show all active project" << endl;
-	cout << "8 - Exit" << endl;
-	cout << "Introduz a opcao: ";
-}
-
-/**
  * Get only number from cin
  */
 int ConfigSiteTool::getOlyInteger(string errorMessage) {
@@ -77,18 +61,18 @@ void ConfigSiteTool::configApache(bool isChangePort) {
 	string porto = intToString(this->porto);
 
 	// Set Port
-	this->setPort(porto, this->nomeProjecto);
+	this->setPortApache(porto, this->nomeProjecto);
 
 	// Set Path
-	this->setPath(this->pathWWW, this->nomeProjecto);
+	this->setPathApache(this->pathWWW, this->nomeProjecto);
 
 	// Desactiva o site
 	if (isChangePort){
-		this->disableSite(this->nomeProjecto);
+		this->disableSiteApache(this->nomeProjecto);
 	}
 
 	// Activa o site sudo a2ensite nome_projecto.conf
-	this->enableSite(this->nomeProjecto);
+	this->enableSiteApache(this->nomeProjecto);
 }
 
 /**
@@ -99,13 +83,13 @@ void ConfigSiteTool::disableProject(){
 
 	// Remove Port
 	porto = this->intToString(this->porto);
-	this->unsetPort(porto);
+	this->unsetPortApache(porto);
 
 	// Remove Virtual Conf File
-	this->deleteVirtualConfFile(this->nomeProjecto);
+	this->deleteVirtualConfFileApache(this->nomeProjecto);
 
 	// Disable Site
-	this->disableSite(this->nomeProjecto);
+	this->disableSiteApache(this->nomeProjecto);
 }
 
 /**
@@ -116,6 +100,22 @@ void ConfigSiteTool::saveInfo(string name, int porto, bool isDelete) {
 	string sPorto = intToString(porto);
 	string cmdToExec = "bash " + APPFOLDER + "infoListProject.sh" + operation + name + " " + sPorto;
 	system(cmdToExec.c_str());
+}
+
+/**
+ * Print Menu
+ */
+void ConfigSiteTool::printMenu() {
+	cout << "\n Options 1, 2, 3 and 6 also activate project on apache !!!\n\n";
+	cout << "1 - Create new project" << endl;
+	cout << "2 - Config existing project(Run composer install)" << endl;
+ 	cout << "3 - Change port for an project(For activated project)" << endl;
+ 	cout << "4 - Disable an existing project(Not delete project folder)" << endl;
+ 	cout << "5 - Update existing project" << endl;
+ 	cout << "6 - Only activate project(On apache)" << endl;
+	cout << "7 - Show all active project" << endl;
+	cout << "8 - Exit" << endl;
+	cout << "Introduz a opcao: ";
 }
 
 /**
@@ -156,7 +156,7 @@ void ConfigSiteTool::getInfoProject(int typeInfo, bool isNewProject) {
 
 		// Pede o porto enquanto o portio indicado já esta a ser usado
 		porto = this->intToString(this->porto);
-		while(this->checkPortsUsed(porto)) {
+		while(this->checkPortsUsedApache(porto)) {
 			cout << "Port inserted is used by other project." << endl;
 			cout << "Continue? (S/N): ";
 			getline(cin, confirm);
@@ -181,7 +181,7 @@ void ConfigSiteTool::executeAllNecessaryCommand(int option) {
 	string oldPorto;
 
 	// Copy tamplate
-	this->copyVirtualConf(this->nomeProjecto);
+	this->copyVirtualConfApache(this->nomeProjecto);
 
 	// Config Apache
 	if (option == 3){
@@ -193,15 +193,15 @@ void ConfigSiteTool::executeAllNecessaryCommand(int option) {
 	switch (option) {
 		case 1:
 			// Create new Project
-			this->newProject(this->pathWWW, this->nomeProjecto);
+			this->newProjectCakePHP(this->pathWWW, this->nomeProjecto);
 			break;
 		case 2:
 			// Config existing Project
-			this->configProject(this->pathWWW, this->nomeProjecto);
+			this->configProjectCakePHP(this->pathWWW, this->nomeProjecto);
 			break;
 		case 3:
 			oldPorto = intToString(this->oldPorto);
-			this->unsetPort(oldPorto);
+			this->unsetPortApache(oldPorto);
 			break;			
 	}
 }
@@ -232,7 +232,7 @@ void ConfigSiteTool::executeOptionSelected(int opcao) {
 				this->getInfoProject(1, false);
 
 				// Update existing Project
-				this->updateProject(this->pathWWW, this->nomeProjecto);
+				this->updateProjectCakePHP(this->pathWWW, this->nomeProjecto);
 				break;
 			case 6:
 				this->getInfoProject(-1, true);
@@ -240,7 +240,7 @@ void ConfigSiteTool::executeOptionSelected(int opcao) {
 			case 7:
 				string cmdToExec;
 				cmdToExec = "./" + APPFOLDER + "infoListProject.sh" + " show " + INFOPROJECTAPACHE;
-				AllCommands::executeCommands(cmdToExec);
+				this->classAllCommands.executeCommands(cmdToExec);
 				break;
 		}
 	}

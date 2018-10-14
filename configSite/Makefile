@@ -20,7 +20,7 @@ ALLCOMMANDS = AllCommands.cpp
 CONFIGSITETOOL = ConfigSiteTool.cpp
 
 # BIN NAME
-NAME = ConfigSiteTool
+NAME = configSite
 
 # DEFINE TARGET HEADER
 HEADER = $(LIB)$(INCLUDE_H)
@@ -36,6 +36,7 @@ ALLFILE = $(FILE1) $(FILE2) $(FILE3) $(FILE4)
 # DEFINE BIN FILE
 TARGET = $(BIN)$(NAME)
 
+# OTHER
 SUDO = sudo
 CREATEBINPATH = $(SUDO) mkdir -p $(BIN)
 

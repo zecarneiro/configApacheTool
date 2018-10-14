@@ -11,7 +11,10 @@
 #include "../lib/AllCakePHP.h"
 
 /* Definition to project */
-class ConfigSiteTool : public AllApache, public AllCakePHP, public AllCommands {
+class ConfigSiteTool: public AllApache, public AllCakePHP {
+    private:
+        AllCommands classAllCommands;
+
     public:
         string nomeProjecto;
 	    int porto;

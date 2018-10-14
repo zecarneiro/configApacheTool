@@ -6,24 +6,24 @@
 #define ALLCAKEPHP_H
 
 #include "../lib/includes.h"
-#include "../lib/AllCommands.h"
 #include "../lib/AllApache.h"
+#include "../lib/AllCommands.h"
 
 class AllCakePHP {
-    protected:
+    private:
         string newProjectCmd;
         string updateProjectCmd;
         string configProjectCmd;
-        AllApache classAllApache;
         AllCommands classAllCommands;
+        AllApache classAllApache;
 
     public:
         AllCakePHP();
         ~AllCakePHP();
 
-        void newProject(string, string);
-        void updateProject(string, string);
-        void configProject(string, string);
+        void newProjectCakePHP(string, string);
+        void updateProjectCakePHP(string, string);
+        void configProjectCakePHP(string, string);
 };
 
 #endif // ALLCAKEPHP_H

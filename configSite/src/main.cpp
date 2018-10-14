@@ -11,11 +11,13 @@
  */
 int main(){
 	// Definições das vairiáveis
-	ConfigSiteTool project;
 	bool showMenu = true, firstRun=true;
 	int  opcao;
 
 	while(1) {
+		ConfigSiteTool *project;
+		project = new ConfigSiteTool();
+		
 		if (!firstRun){
 			cout << "\n\n\n### Operation finished! ###\n" << endl;
 		}
@@ -23,11 +25,11 @@ int main(){
 		do{
 			// Se o menu não foi imprimido, então faz o print do mesmo
 	    	if (showMenu) {
-	    		project.printMenu();
+				project->printMenu();
 	    		showMenu = false;
 	    	}
 	    	// Espera pela opção escolhida pelo utilizador
-	      	opcao = project.getOlyInteger("\nInsert valid option: ");
+	      	opcao = project->getOlyInteger("\nInsert valid option: ");
 	      	
 	      	// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
 	      	if(opcao < 1 || opcao > 8){
@@ -48,6 +50,7 @@ int main(){
 	  	showMenu = true;
 	  	opcao = -1;
 	  	firstRun = false;
+		delete project;
 	}
   	
   	// exit

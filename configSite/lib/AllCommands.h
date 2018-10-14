@@ -9,7 +9,7 @@
 
 /* Definition to all necessary commands */
 class AllCommands {
-    protected:
+    private:
         string sudo;
         string copy;
         string cd;
