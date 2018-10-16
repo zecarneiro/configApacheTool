@@ -33,7 +33,7 @@ function printMessages(){
 # Install Other Apps
 function installOtherApps(){
 	local allPPAs="ppa:git-core/ppa"
-	local allApps="g++ make git curl"
+	local allApps="g++ make git curl libsqlite3-dev"
 
 	printMessages "Install APPs..."
 	eval "$functionsFile -i \"$allApps\" \"$allPPAs\""
