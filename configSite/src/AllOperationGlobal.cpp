@@ -3,12 +3,12 @@
  * Comando: g++ -Wall config.cpp -o config
  * nomestring.c_str() -> converte uma string em char c
  */
-#include "../lib/AllCommands.h"
+#include "../lib/AllOperationGlobal.h"
 
 /**
  * Constructor
  */
-AllCommands::AllCommands() {
+AllOperationGlobal::AllOperationGlobal() {
     this->sudo = "sudo";
     this->copy = "cp";
     this->cd = "cd";
@@ -26,96 +26,96 @@ AllCommands::AllCommands() {
 /**
  * Destructor
  */
-AllCommands::~AllCommands() {}
+AllOperationGlobal::~AllOperationGlobal() {}
 
 /**
  * Return sudo command constructed
  */
-string AllCommands::getCommandSudo(string params) {
+string AllOperationGlobal::getCommandSudo(string params) {
     return this->sudo + " " + params;
 }
 
 /**
  * Return copy command constructed
  */
-string AllCommands::getCommandCopy(string params) {
+string AllOperationGlobal::getCommandCopy(string params) {
     return this->copy + " " + params;
 }
 
 /**
  * Return cd command constructed
  */
-string AllCommands::getCommandCd(string params) {
+string AllOperationGlobal::getCommandCd(string params) {
     return this->cd + " " + params;
 }
 
 /**
  * Return mkdir command constructed
  */
-string AllCommands::getCommandMkdir(string params) {
+string AllOperationGlobal::getCommandMkdir(string params) {
     return this->mkdir + " " + params;
 }
 
 /**
  * Return del command constructed
  */
-string AllCommands::getCommandDel(string params) {
+string AllOperationGlobal::getCommandDel(string params) {
     return this->del + " " + params;
 }
 
 /**
  * Return grep command constructed
  */
-string AllCommands::getCommandGrep(string params) {
+string AllOperationGlobal::getCommandGrep(string params) {
     return this->grep + " " + params;
 }
 
 /**
  * Return mv command constructed
  */
-string AllCommands::getCommandMv(string params) {
+string AllOperationGlobal::getCommandMv(string params) {
     return this->mv + " " + params;
 }
 
 /**
  * Return cat command constructed
  */
-string AllCommands::getCommandCat(string params) {
+string AllOperationGlobal::getCommandCat(string params) {
     return this->cat + " " + params;
 }
 
 /**
  * Return sed command constructed
  */
-string AllCommands::getCommandSed(string params) {
+string AllOperationGlobal::getCommandSed(string params) {
     return this->sed + " " + params;
 }
 
 /**
  * Return chown command constructed
  */
-string AllCommands::getCommandChown(string params) {
+string AllOperationGlobal::getCommandChown(string params) {
     return this->chown + " " + params;
 }
 
 /**
  * Return chmod command constructed
  */
-string AllCommands::getCommandChmod(string params) {
+string AllOperationGlobal::getCommandChmod(string params) {
     return this->chmod + " " + params;
 }
 
 /**
  * Execute command
  */
-void AllCommands::executeCommands(string command) {
+void AllOperationGlobal::executeCommands(string command) {
     system(command.c_str());
 }
 
 /**
  * Execute command and return output
  */
-string AllCommands::executeCommandsWithOutput(const char* command) {
+string AllOperationGlobal::executeCommandsWithOutput(const char* command) {
     char buffer[128];
     string output = "";
 
@@ -137,7 +137,7 @@ string AllCommands::executeCommandsWithOutput(const char* command) {
 /**
  * Set Permission on path
  */
-void AllCommands::setPermission(string path) {
+void AllOperationGlobal::setPermission(string path) {
     string command = "-R " + LEVELPERMISSION + " " + path;
     command = this->getCommandChmod(command);
     command = this->getCommandSudo(command);
@@ -149,7 +149,7 @@ void AllCommands::setPermission(string path) {
 /**
  * Check if Dir exist or not
  */
-bool AllCommands::checkDirectory(string path, string nameDirectory) {
+bool AllOperationGlobal::checkDirectory(string path, string nameDirectory) {
     string fullPath = "\"" + path + nameDirectory + "\"";
     string command = "./" + FUNCTIONSHELL + " -existFD " + fullPath;
     return (this->executeCommandsWithOutput(command.c_str()) == "1") ? true : false;
@@ -158,8 +158,42 @@ bool AllCommands::checkDirectory(string path, string nameDirectory) {
 /**
  * Check if File exist or not
  */
-bool AllCommands::checkFile(string path, string nameFile) {
+bool AllOperationGlobal::checkFile(string path, string nameFile) {
     string fullPath = "\"" + path + nameFile + "\"";
     string command = "./" + FUNCTIONSHELL + " -existFD " + fullPath;
     return (this->executeCommandsWithOutput(command.c_str()) == "1") ? true : false;
+}
+
+/**
+ * Convert intinger to string
+ */
+string AllOperationGlobal::intToString(int integerToString) {
+	// get Int to convert to string
+	stringstream ssInt;
+	ssInt << integerToString;
+	return ssInt.str();
+}
+
+/**
+ * Clear cin
+ */
+void AllOperationGlobal::clearCin(){
+	cin.clear();
+    cin.ignore(256,'\n');
+}
+
+/**
+ * Get only number from cin
+ */
+int AllOperationGlobal::getOlyInteger(string errorMessage) {
+	int integer;
+	cin >> integer;
+
+	// ask when user not introduce integer
+    while(cin.fail()) {
+        cout << errorMessage;
+        clearCin();
+        cin >> integer;
+    }
+    return integer;
 }

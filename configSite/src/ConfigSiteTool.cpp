@@ -21,40 +21,6 @@ ConfigSiteTool::ConfigSiteTool() {
 ConfigSiteTool::~ConfigSiteTool() {}
 
 /**
- * Clear cin
- */
-void ConfigSiteTool::clearCin(){
-	cin.clear();
-    cin.ignore(256,'\n');
-}
-
-/**
- * Get only number from cin
- */
-int ConfigSiteTool::getOlyInteger(string errorMessage) {
-	int integer;
-	cin >> integer;
-
-	// ask when user not introduce integer
-    while(cin.fail()) {
-        cout << errorMessage;
-        clearCin();
-        cin >> integer;
-    }
-    return integer;
-}
-
-/**
- * Convert intinger to string
- */
-string ConfigSiteTool::intToString(int integerToString) {
-	// get Int to convert to string
-	stringstream ssInt;
-	ssInt << integerToString;
-	return ssInt.str();
-}
-
-/**
  * Configura, activa e reinicia as novas configurações no apache
  */
 void ConfigSiteTool::configApache(bool isChangePort) {
@@ -105,17 +71,33 @@ void ConfigSiteTool::saveInfo(string name, int porto, bool isDelete) {
 /**
  * Print Menu
  */
-void ConfigSiteTool::printMenu() {
-	cout << "\n Options 1, 2, 3 and 6 also activate project on apache !!!\n\n";
-	cout << "1 - Create new project" << endl;
-	cout << "2 - Config existing project(Run composer install)" << endl;
- 	cout << "3 - Change port for an project(For activated project)" << endl;
- 	cout << "4 - Disable an existing project(Not delete project folder)" << endl;
- 	cout << "5 - Update existing project" << endl;
- 	cout << "6 - Only activate project(On apache)" << endl;
-	cout << "7 - Show all active project" << endl;
-	cout << "8 - Exit" << endl;
-	cout << "Introduz a opcao: ";
+void ConfigSiteTool::printMenu(int type) {
+	if (type == 0) {
+		cout << "\nSelect Server" << endl;
+		cout << "1 - Apache" << endl;
+		cout << "2 - NGinx" << endl;
+		cout << "3 - Exit" << endl;
+		cout << "Introduz a opcao: ";
+	} else if (type == 1) {
+		cout << "\nSelect Framework" << endl;
+		cout << "1 - CakePHP" << endl;
+		cout << "2 - Laravel" << endl;
+		cout << "3 - Back HOME" << endl;
+		cout << "4 - Exit" << endl;
+		cout << "Insert an option: ";
+	} else {
+		cout << "\n Options 1, 2, 3 and 6 also activate project on apache !!!\n\n";
+		cout << "1 - Create new project" << endl;
+		cout << "2 - Config existing project(Run composer install)" << endl;
+		cout << "3 - Change port for an project(For activated project)" << endl;
+		cout << "4 - Disable an existing project(Not delete project folder)" << endl;
+		cout << "5 - Update existing project" << endl;
+		cout << "6 - Only activate project(On apache)" << endl;
+		cout << "7 - Show all active project" << endl;
+		cout << "8 - Back HOME" << endl;
+		cout << "9 - Exit" << endl;
+		cout << "Insert an option: ";
+	}
 }
 
 /**
@@ -240,7 +222,7 @@ void ConfigSiteTool::executeOptionSelected(int opcao) {
 			case 7:
 				string cmdToExec;
 				cmdToExec = "./" + APPFOLDER + "infoListProject.sh" + " show " + INFOPROJECTAPACHE;
-				this->classAllCommands.executeCommands(cmdToExec);
+				this->executeCommands(cmdToExec);
 				break;
 		}
 	}

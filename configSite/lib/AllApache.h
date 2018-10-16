@@ -6,7 +6,7 @@
 #define ALLAPACHE_H
 
 #include "../lib/includes.h"
-#include "../lib/AllCommands.h"
+#include "../lib/AllOperationGlobal.h"
 
 /* Definition to all necessary apache config */
 class AllApache {
@@ -21,7 +21,7 @@ class AllApache {
         string portsConf;
         string extensionVirtualConf;
         string groupApache;
-        AllCommands classAllCommands;
+        AllOperationGlobal classAllCommands;
 
     public:
         AllApache();

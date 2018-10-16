@@ -8,7 +8,7 @@
 #include "../lib/includes.h"
 
 /* Definition to all necessary commands */
-class AllCommands {
+class AllOperationGlobal {
     private:
         string sudo;
         string copy;
@@ -24,8 +24,8 @@ class AllCommands {
         string otherFunctionsCommand;
 
     public:
-        AllCommands();
-        ~AllCommands();
+        AllOperationGlobal();
+        ~AllOperationGlobal();
 
         string getCommandSudo(string);
         string getCommandCopy(string);
@@ -44,5 +44,8 @@ class AllCommands {
         void setPermission(string);
         bool checkDirectory(string, string);
         bool checkFile(string, string);
+        int getOlyInteger(string);
+        void clearCin();
+        string intToString(int);
 };
 #endif // ALLCOMMANDS_H

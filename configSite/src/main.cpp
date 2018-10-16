@@ -6,12 +6,61 @@
 #include "../lib/includes.h"
 #include "../lib/ConfigSiteTool.h"
 
+void executeTerminal() {
+	system("x-terminal-emulator -e");
+}
+
+void selectServer(ConfigSiteTool &project) {
+	bool firstShow = true;
+	int option;
+	do{
+		if (firstShow) {
+			project.printMenu(0);
+			firstShow = false;
+		}
+
+		// Espera pela opção escolhida pelo utilizador
+		option = project.getOlyInteger("\nInsert valid option: ");
+		
+		// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
+		if(option < 1 || option > 3){
+			cout << "\nInsert valid option only!!!"<<endl;
+			cout<<"Insert an option: ";
+		}
+	}while (option < 1 || option > 3);
+
+	if (option == 3) exit(0);
+}
+
+void selectFramework(ConfigSiteTool &project, bool &isBack) {
+	bool firstShow = true;
+	int option;
+	do{
+		if (firstShow) {
+			project.printMenu(1);
+			firstShow = false;
+		}
+
+		// Espera pela opção escolhida pelo utilizador
+		option = project.getOlyInteger("\nInsert valid option: ");
+		
+		// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
+		if(option < 1 || option > 4){
+			cout << "\nInsert valid option only!!!"<<endl;
+			cout<<"Insert an option: ";
+		}
+	}while (option < 1 || option > 4);
+
+	if (option == 3) isBack = true;
+	else if (option == 4) exit(0);
+}
+
 /**
  * Main
  */
 int main(){
 	// Definições das vairiáveis
-	bool showMenu = true, firstRun=true;
+	bool showMenu = true, firstRun=true, isBack = false;
 	int  opcao;
 
 	while(1) {
@@ -25,31 +74,45 @@ int main(){
 		do{
 			// Se o menu não foi imprimido, então faz o print do mesmo
 	    	if (showMenu) {
-				project->printMenu();
+				selectServer(*project);
+				selectFramework(*project, isBack);
+
+				if (!isBack) project->printMenu(2);			
 	    		showMenu = false;
 	    	}
-	    	// Espera pela opção escolhida pelo utilizador
-	      	opcao = project->getOlyInteger("\nInsert valid option: ");
+
+			if (!isBack) {
+				// Espera pela opção escolhida pelo utilizador
+	      		opcao = project->getOlyInteger("\nInsert valid option: ");
+			} else {
+				opcao = 8;
+				isBack = false;
+			}
 	      	
 	      	// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
-	      	if(opcao < 1 || opcao > 8){
+	      	if(opcao < 1 || opcao > 9){
 				cout << "\nInsert valid option only!!!"<<endl;
 	  			cout<<"Insert an option: ";
 	      	}
-		}while (opcao < 1 || opcao > 8);
+		}while (opcao < 1 || opcao > 9);
 
 		// Exit
-		if (opcao == 8) {
+		if (opcao == 9) {
 			break;
 		}
 
-        // Execute option selected
-        //executeOptionSelected(project, opcao);
+		if (opcao != 8) {
+			// Execute option selected
+        	project->executeOptionSelected(opcao);
+			firstRun = false;
+		} else {
+			system("clear");
+			firstRun = true;
+		}
 
 	  	// Change config for variable
 	  	showMenu = true;
 	  	opcao = -1;
-	  	firstRun = false;
 		delete project;
 	}
   	

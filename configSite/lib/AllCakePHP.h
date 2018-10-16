@@ -7,14 +7,14 @@
 
 #include "../lib/includes.h"
 #include "../lib/AllApache.h"
-#include "../lib/AllCommands.h"
+#include "../lib/AllOperationGlobal.h"
 
 class AllCakePHP {
     private:
         string newProjectCmd;
         string updateProjectCmd;
         string configProjectCmd;
-        AllCommands classAllCommands;
+        AllOperationGlobal classAllCommands;
         AllApache classAllApache;
 
     public:

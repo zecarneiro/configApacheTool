@@ -43,6 +43,7 @@ function installOtherApps(){
 # Install ConfigSite
 function installConfigSite(){
 	local permission="755"
+	local atalhoFile="$pathHome/.local/share/applications/$appPath.desktop"
 
 	printMessages "Install ConfigSite..."
 	# Copy app path to instalation path
@@ -53,12 +54,15 @@ function installConfigSite(){
 
 	# Create desktop file
 	eval "$functionsFile -dFile \"$appPath\" \"$appPath.desktop\" \"$executableAPP\" \"$iconAPP\" 0"
+
+	# Activate to execute on terminal
+	sed -i "s#Terminal=false#Terminal=true#" $atalhoFile
 	printMessages "Instalation of ConfigSite done..."
 }
 
 # Uninstall ConfigSite
 function uninstallConfigSite(){
-	local atalhoFile="~/.local/share/applications/$appPath.desktop"
+	local atalhoFile="$pathHome/.local/share/applications/$appPath.desktop"
 	local dirInstalationApp="$appInstalationPath$appPath"
 
 	printMessages "Uninstall ConfigSite..."

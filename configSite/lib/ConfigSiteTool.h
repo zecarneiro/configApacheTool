@@ -6,15 +6,12 @@
 #define CONFIGSITETOOL_H
 
 #include "../lib/includes.h"
-#include "../lib/AllCommands.h"
+#include "../lib/AllOperationGlobal.h"
 #include "../lib/AllApache.h"
 #include "../lib/AllCakePHP.h"
 
 /* Definition to project */
-class ConfigSiteTool: public AllApache, public AllCakePHP {
-    private:
-        AllCommands classAllCommands;
-
+class ConfigSiteTool: public AllOperationGlobal, private AllApache, public AllCakePHP {
     public:
         string nomeProjecto;
 	    int porto;
@@ -24,10 +21,7 @@ class ConfigSiteTool: public AllApache, public AllCakePHP {
         /* Methods */
         ConfigSiteTool();
         ~ConfigSiteTool();
-        void clearCin();
-        void printMenu();
-        int getOlyInteger(string);
-        string intToString(int);
+        void printMenu(int);
         void getInfoProject(int, bool);
         void configApache(bool);
         void executeAllNecessaryCommand(int);
