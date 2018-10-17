@@ -14,6 +14,8 @@ class AllDataBase {
         string nameFileDataBase;
         string pathDataBase;
         string fileDataBase;
+        int lengthName;
+        int lengthPath;
         sqlite3 *dataBase;
         AllOperationGlobal classAllOperationGlobal;
 
@@ -23,11 +25,24 @@ class AllDataBase {
 
         void openDataBase();
         void closeDataBase();
+        void execQuery(const char* query, bool useCallBack);
         void createDataBase();
         void printActiveProject();
         void getProject(string &);
         bool changePort(string nameProject, string server);
         bool deleteActiveProject(string nameProject, string server);
+        static int callback(void *unused, int count, char **data, char **columns) {
+            int idx;
+
+            cout << "There are " << count << " column(s)\n";
+
+            for (idx = 0; idx < count; idx++) {
+                cout << "The data in column \"" << columns[idx] << "\" is: " << data[idx] << "\n";
+            }
+
+            cout << endl;
+            return 0;
+        }
 };
 
 #endif // ALLAPACHE_H

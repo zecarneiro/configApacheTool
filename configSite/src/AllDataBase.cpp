@@ -12,6 +12,8 @@ AllDataBase::AllDataBase() {
 	this->nameFileDataBase = "configSiteTool.db";
     this->pathDataBase = CONFIGFOLDER;
     this->fileDataBase = this->pathDataBase + "/" + this->nameFileDataBase;
+    this->lengthName = 50;
+    this->lengthPath = 200;
 
     // Create Data Base if not exist
     if (!this->classAllOperationGlobal.checkFile(CONFIGFOLDER, this->nameFileDataBase)) {
@@ -50,22 +52,60 @@ void AllDataBase::closeDataBase() {
     sqlite3_close(this->dataBase);
 }
 
+void AllDataBase::execQuery(const char* query, bool useCallBack) {
+    int rc;
+    if (useCallBack) {
+        rc = sqlite3_exec(this->dataBase, query, callback, NULL, NULL);
+    } else {
+        rc = sqlite3_exec(this->dataBase, query, NULL, NULL, NULL);
+    }
+
+    // ERROR
+    if( rc != SQLITE_OK ) {
+        cout<<"SQL error: "<<sqlite3_errmsg(this->dataBase)<<"\n";
+
+        // Save error
+        string error = sqlite3_errmsg(this->dataBase);
+        error = "SQL error: " + error;
+        this->classAllOperationGlobal.logError(error);
+
+        sqlite3_close(this->dataBase);
+        exit(1);
+    }
+}
+
 /**
  * Create Data Base
  */
 void AllDataBase::createDataBase(){
     this->openDataBase();
+    const char* query;
 
-    // Create Data Base
-    const char* queryCreate = "CREATE TABLE configSiteTool("
+    // Create Data Base config site tool
+    string queryServer = "CREATE TABLE IF NOT EXISTS Server("
         "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
-        "name_project VARCHAR(50) NOT NULL,"
-        "server VARCHAR(50) NOT NULL,"
+        "name_server VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
+        "UNIQUE (name_server COLLATE NOCASE))"; // COLLATE NOCASE : case insensitive
+    query = queryServer.c_str();
+    this->execQuery(query, false);
+
+    // Create Data Base config site tool
+    string queryCreateConfigSite = "CREATE TABLE IF NOT EXISTS ConfigSite("
+        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
+        "name_project VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
         "port INTEGER NOT NULL,"
-        "path VARCHAR(200),"
-        "date DATETIME DEFAULT CURRENT_TIMESTAMP)";
-    
-    sqlite3_exec(this->dataBase, queryCreate, NULL, NULL, NULL);
+        "path VARCHAR(" + to_string(this->lengthPath) + "),"
+        "server_id INTEGER NOT NULL,"
+        "FOREIGN KEY(server_id) REFERENCES Server(id))";
+    query = queryCreateConfigSite.c_str();
+    this->execQuery(query, false);
+
+    // Insert Server Value
+    string serverValues = "INSERT INTO Server(name_server) VALUES ('Apache2');";
+    serverValues += "INSERT INTO Server(name_server) VALUES ('NGinx');";
+    query = serverValues.c_str();
+    this->execQuery(query, true);
+
     this->closeDataBase();
 }
 

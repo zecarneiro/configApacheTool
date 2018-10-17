@@ -204,6 +204,7 @@ int AllOperationGlobal::getOlyInteger(string errorMessage) {
  * Log Error
  */
 void AllOperationGlobal::logError(string message) {
-    string command = "echo " + message + " | tee -a " + CONFIGFOLDER + "/log.txt";
+    string command = "mkdir -p " + CONFIGFOLDER + " && ";
+    command += "echo \"" + message + "\" | tee -a " + CONFIGFOLDER + "/log.txt";
     this->executeCommands(command);
 }
