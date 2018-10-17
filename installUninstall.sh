@@ -77,7 +77,7 @@ function uninstallConfigSite(){
 }
 
 # Set Default path
-function setDefaultPath(){
+function setPath(){
 	local permission="777"
 	local fileToSetDefaultPath="$appInstalationPath$appPath/lib/includes.h"
 
@@ -97,7 +97,8 @@ function setDefaultPath(){
 	# Set Default path www on app
 	# sudo sed -i 's#PATH_WWW#localizacao_www#' /opt/configSite/includes.h
 	sudo sed -i "s#PATH_WWW#$pathWWW#" "$fileToSetDefaultPath"
-	printMessages "Set Default Path Done..."
+	sudo sed -i "s#HOME_DIR#$pathHome#" "$fileToSetDefaultPath"
+	printMessages "Set Path Done..."
 }
 
 # Instalation of servers
@@ -182,11 +183,11 @@ function main(){
 		"-i")
 			installConfigSite
 			installOtherApps
+			setPath
 
 			# Compile
 			eval "$compileCommand"
 
-			setDefaultPath
 			installServer
 			installPhp
 			installComposer

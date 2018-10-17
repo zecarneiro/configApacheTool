@@ -6,7 +6,6 @@
 #define ALLDATABASE_H
 
 #include "../lib/includes.h"
-#include <sqlite3.h>
 #include "../lib/AllOperationGlobal.h"
 
 /* Definition to all necessary apache config */
@@ -14,15 +13,19 @@ class AllDataBase {
     private:
         string nameFileDataBase;
         string pathDataBase;
+        string fileDataBase;
         sqlite3 *dataBase;
         AllOperationGlobal classAllOperationGlobal;
-        int createDataBase();
 
     public:
-        AllDataBase(string path);
+        AllDataBase();
         ~AllDataBase();
 
+        void openDataBase();
+        void closeDataBase();
+        void createDataBase();
         void printActiveProject();
+        void getProject(string &);
         bool changePort(string nameProject, string server);
         bool deleteActiveProject(string nameProject, string server);
 };

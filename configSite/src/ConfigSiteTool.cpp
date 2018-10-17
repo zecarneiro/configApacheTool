@@ -13,6 +13,11 @@ ConfigSiteTool::ConfigSiteTool() {
 	this->porto = 9000;
 	this->oldPorto = -1;
 	this->pathWWW  = PATHWWW;
+
+	// Create Default config folder
+	this->createConfigFolderCmd = "mkdir -p " + CONFIGFOLDER;
+	this->createConfigFolderCmd += " && chmod -R 777 " + CONFIGFOLDER;
+	this->executeCommands(this->createConfigFolderCmd);
 }
 
 /**

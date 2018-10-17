@@ -11,6 +11,7 @@
 #include <string>
 #include <sstream>	//Para converter inteiros em strings
 #include <cstdio>	//Para popen()
+#include <sqlite3.h> // Data Base Manager
 using namespace std;
 
 /**
@@ -23,6 +24,7 @@ const string PATHIDENTIFY = "FULL_PATH_PROJECT";
 const string PATHWWW = "PATH_WWW";
 const string LEVELPERMISSION = "777";
 const string INFOPROJECTAPACHE = "infoProjectApache.sh";
-const string FUNCTIONSHELL = APPFOLDER + "functions.sh";
+const string FUNCTIONSHELL = APPFOLDER + "src/functions.sh";
+const string CONFIGFOLDER = "HOME_DIR/.config/configSite";
 
 #endif // INCLUDE_H

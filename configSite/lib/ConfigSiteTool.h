@@ -9,9 +9,13 @@
 #include "../lib/AllOperationGlobal.h"
 #include "../lib/AllApache.h"
 #include "../lib/AllCakePHP.h"
+#include "../lib/AllDataBase.h"
 
 /* Definition to project */
-class ConfigSiteTool: public AllOperationGlobal, private AllApache, public AllCakePHP {
+class ConfigSiteTool: public AllDataBase, public AllOperationGlobal, private AllApache, public AllCakePHP {
+    private:
+        string createConfigFolderCmd;
+        
     public:
         string nomeProjecto;
 	    int porto;

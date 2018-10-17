@@ -17,6 +17,7 @@ MSNAME = main.cpp
 ALLAPACHE = AllApache.cpp
 ALLCAKEPHP = AllCakePHP.cpp
 ALLOPERATIONGLOBAL = AllOperationGlobal.cpp
+ALLDATABASE = AllDataBase.cpp
 CONFIGSITETOOL = ConfigSiteTool.cpp
 
 # BIN NAME
@@ -31,7 +32,8 @@ FILE1 = $(SOURCE)$(ALLAPACHE)
 FILE2 = $(SOURCE)$(ALLCAKEPHP)
 FILE3 = $(SOURCE)$(ALLOPERATIONGLOBAL)
 FILE4 = $(SOURCE)$(CONFIGSITETOOL)
-ALLFILE = $(FILE1) $(FILE2) $(FILE3) $(FILE4)
+FILE5 = $(SOURCE)$(ALLDATABASE)
+ALLFILE = $(FILE1) $(FILE2) $(FILE3) $(FILE4) $(FILE5)
 
 # DEFINE BIN FILE
 TARGET = $(BIN)$(NAME)
@@ -46,5 +48,5 @@ CREATEBINPATH = $(SUDO) mkdir -p $(BIN)
 # linhas que contêm echo
 subsystem:
 	@$(CREATEBINPATH)
-	@$(SUDO) $(CC) $(FLAGS) $(FILE) $(HEADER) $(ALLFILE) -o $(TARGET)	# Cria o executavel
+	@$(SUDO) $(CC) $(FLAGS) $(FILE) $(HEADER) $(ALLFILE) -lsqlite3 -o $(TARGET)	# Cria o executavel
 	@echo O executavel $(NAME) foi criado com sucesso.

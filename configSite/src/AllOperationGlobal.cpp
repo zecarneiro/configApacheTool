@@ -150,18 +150,20 @@ void AllOperationGlobal::setPermission(string path) {
  * Check if Dir exist or not
  */
 bool AllOperationGlobal::checkDirectory(string path, string nameDirectory) {
-    string fullPath = "\"" + path + nameDirectory + "\"";
-    string command = "./" + FUNCTIONSHELL + " -existFD " + fullPath;
-    return (this->executeCommandsWithOutput(command.c_str()) == "1") ? true : false;
+    string fullPath = "\"" + path + "/" + nameDirectory + "\"";
+    string command = FUNCTIONSHELL + " -existFD " + fullPath;
+    string result = this->executeCommandsWithOutput(command.c_str());
+    return (result.compare("1\n") == 0) ? true : false;
 }
 
 /**
  * Check if File exist or not
  */
 bool AllOperationGlobal::checkFile(string path, string nameFile) {
-    string fullPath = "\"" + path + nameFile + "\"";
-    string command = "./" + FUNCTIONSHELL + " -existFD " + fullPath;
-    return (this->executeCommandsWithOutput(command.c_str()) == "1") ? true : false;
+    string fullPath = "\"" + path + "/" + nameFile + "\"";
+    string command = FUNCTIONSHELL + " -existFD " + fullPath;
+    string result = this->executeCommandsWithOutput(command.c_str());
+    return (result.compare("1\n") == 0) ? true : false;
 }
 
 /**
@@ -196,4 +198,12 @@ int AllOperationGlobal::getOlyInteger(string errorMessage) {
         cin >> integer;
     }
     return integer;
+}
+
+/**
+ * Log Error
+ */
+void AllOperationGlobal::logError(string message) {
+    string command = "echo " + message + " | tee -a " + CONFIGFOLDER + "/log.txt";
+    this->executeCommands(command);
 }
