@@ -23,10 +23,7 @@ declare compileCommand="make -C $appInstalationPath$appPath/ -f $appInstalationP
 function printMessages(){
 	local message="$1"
 
-	echo
-	echo
 	echo "#### $message ####"
-	echo
 	echo
 }
 
@@ -35,7 +32,6 @@ function installOtherApps(){
 	local allPPAs="ppa:git-core/ppa"
 	local allApps="g++ make git curl libsqlite3-dev"
 
-	printMessages "Install APPs..."
 	eval "$functionsFile -i \"$allApps\" \"$allPPAs\""
 	printMessages "Instalation of APPs done..."
 }
@@ -45,7 +41,6 @@ function installConfigSite(){
 	local permission="755"
 	local atalhoFile="$pathHome/.local/share/applications/$appPath.desktop"
 
-	printMessages "Install ConfigSite..."
 	# Copy app path to instalation path
 	sudo cp -r $appPath $appInstalationPath
 
@@ -65,7 +60,6 @@ function uninstallConfigSite(){
 	local atalhoFile="$pathHome/.local/share/applications/$appPath.desktop"
 	local dirInstalationApp="$appInstalationPath$appPath"
 
-	printMessages "Uninstall ConfigSite..."
 	if [ -f $atalhoFile ]; then
 		sudo rm $atalhoFile
 	fi
@@ -81,7 +75,6 @@ function setPath(){
 	local permission="777"
 	local fileToSetDefaultPath="$appInstalationPath$appPath/lib/includes.h"
 
-	printMessages "Set Deafult Path..."
 	echo "Default full path for projects: $pathWWW" 
 	read -p "Insert full path for projects(Press ENTER for default path): " path
 
@@ -105,7 +98,6 @@ function setPath(){
 function installServer(){
 	local allServerApp="apache2 nginx"
 
-	printMessages "Install Servers..."
 	eval "$functionsFile -i \"$allServerApp\""
 	printMessages "Instalation of servers done..."
 }
@@ -116,7 +108,6 @@ function installPhp(){
 	allPhpApp="$allPhpApp php-pear php-imagick php-imap php-memcache php-pspell php-recode php-snmp"
 	allPhpApp="$allPhpApp php-tidy php-xmlrpc php-sqlite3"
 
-	printMessages "Install PHP APPs..."
 	eval "$functionsFile -i \"$allPhpApp\""
 	printMessages "Instalation of PHP APPs done..."
 }
@@ -126,7 +117,6 @@ function installComposer(){
 	local -i forceInstall
 	local pathComposerInstalation="/usr/bin/composer"
 
-	printMessages "Install Composer..."
 	if [ ! -z $forceInstallComposer ]; then
 		forceInstall=$forceInstallComposer
 	else
@@ -135,8 +125,80 @@ function installComposer(){
 
 	if [ ! -f $pathComposerInstalation ]||[ $forceInstall -eq 1 ]; then
 		curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/bin --filename=composer
+		printMessages "Instalation of Composer done..."
 	fi
-	printMessages "Instalation of Composer done..."
+}
+
+# Install Data Bases
+function installDataBases(){
+	local allServer=""
+
+	echo "1 - MySQL"
+	echo "2 - MariaDB"
+	echo "3 - PostgreSQL"
+
+	echo "All: a1|a2 (1-MySQL|2-MariaDB)"
+	echo "None PRESS ENTER"
+	read -p "Insert Option: " server
+
+	# MySQL
+	if [ "$server" = "1" ]||[ "$server" = "a1" ]; then
+		allServer="mysql-server mysql-client"
+	fi
+
+	# MariaDB
+	if [ "$server" = "2" ]||[ "$server" = "a2" ]; then
+		allServer="mariadb-server mariadb-client"
+	fi
+
+	# PostgreSQL
+	if [ "$server" = "3" ]||[ "$server" = "a1" ]||[ "$server" = "a2" ]; then
+		allServer="$allServer postgresql postgresql-contrib"
+	fi
+
+	if [ ! -z $server ]; then
+		# Install
+		eval "$functionsFile -i \"$allServer\""
+
+		printf "\n\n"
+		echo "PRESS ENTER TO DEFULT"
+		read -p "Insert User(Defult = root): " user
+		read -p "Insert Password(Defult = root): " password
+
+		# Set user info on MySQL Or MariaDB
+		if [ ! -z $user ]; then
+			local createUser="CREATE USER '$user'@'localhost' IDENTIFIED BY '$password';"
+			local setAllPrevileges="GRANT ALL PRIVILEGES ON * . * TO '$user'@'localhost';"
+			local delRootUser="DELETE FROM mysql.user WHERE user = 'root';"
+			local savePrevileges="FLUSH PRIVILEGES;"
+
+			# Execute
+			sudo mysql -u root -e "$createUser"
+			sudo mysql -u root -e "$setAllPrevileges"
+			sudo mysql -u root -e "$savePrevileges"
+			sudo mysql -u $user -e "$delRootUser"
+		else
+			local setPassword="ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$password';"
+			sudo mysql -u root -e "$setPassword"
+		fi
+
+		# Set user info on PostgreSQL
+		if [ ! -z $user ]; then
+			local createUser="sudo -u postgres createuser $user"
+			local setAllPrevileges="grant all privileges on *.* to $user';"
+			local delRootUser="sudo -u postgres dropuser $user"
+
+
+			# Execute
+			sudo mysql -u root -e "$cmdMySQLMariaDB"
+			sudo mysql -u root -e "$setAllPrevileges"
+			sudo mysql -u $user -e "$delRootUser"
+		else
+			local setPassword="ALTER USER postgres PASSWORD '$password';"
+			sudo -u postgres psql -c "$setPassword"
+		fi
+		printMessages "Instalation of Server done..."
+	fi
 }
 
 # Install Other App defined by user
@@ -148,7 +210,6 @@ function installAppByUser(){
 
 # Config Apache
 function configApache(){
-	printMessages "Config Apache2"
 	sudo a2enmod rewrite
 
 	# Reload and Restart
@@ -165,7 +226,6 @@ function configNGinx(){
 	local newLineToChange1="listen \[::\]:81 default_server;"
 	local fileConfig="/etc/nginx/sites-available/default"
 
-	printMessages "Config NGinx"
 	# Change default port nginx because apache port: 80. Change to port 81
 	sudo sed -i "s#$lineToChange#$newLineToChange#" $fileConfig
 	sudo sed -i "s#$lineToChange1#$newLineToChange1#" $fileConfig
@@ -194,6 +254,7 @@ function main(){
 			installAppByUser
 			configApache
 			configNGinx
+			installDataBases
 			;;
 		"-u")
 			uninstallConfigSite
