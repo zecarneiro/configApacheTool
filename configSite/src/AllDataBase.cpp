@@ -74,6 +74,8 @@ void AllDataBase::execQuery(const char* query, bool useCallBack) {
     }
 }
 
+
+
 /**
  * Create Data Base
  */
@@ -81,7 +83,7 @@ void AllDataBase::createDataBase(){
     this->openDataBase();
     const char* query;
 
-    // Create Data Base config site tool
+    // Create Data Base Server
     string queryServer = "CREATE TABLE IF NOT EXISTS Server("
         "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
         "name_server VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
@@ -89,13 +91,32 @@ void AllDataBase::createDataBase(){
     query = queryServer.c_str();
     this->execQuery(query, false);
 
+    // Create Data Base Framework
+    string queryFramework = "CREATE TABLE IF NOT EXISTS Framework("
+        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
+        "name_framework VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
+        "UNIQUE (name_framework COLLATE NOCASE))"; // COLLATE NOCASE : case insensitive
+    query = queryFramework.c_str();
+    this->execQuery(query, false);
+
+    // Create Data Base Framework
+    string queryDirectory = "CREATE TABLE IF NOT EXISTS Directory("
+        "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
+        "directory VARCHAR(" + to_string(this->lengthPath) + "),"
+        "UNIQUE (directory COLLATE NOCASE))"; // COLLATE NOCASE : case insensitive
+    query = queryFramework.c_str();
+    this->execQuery(query, false);
+
     // Create Data Base config site tool
     string queryCreateConfigSite = "CREATE TABLE IF NOT EXISTS ConfigSite("
         "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
         "name_project VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
         "port INTEGER NOT NULL,"
-        "path VARCHAR(" + to_string(this->lengthPath) + "),"
+        "framework_id INTEGER NOT NULL,"
+        "directory_id INTEGER NOT NULL,"
         "server_id INTEGER NOT NULL,"
+        "FOREIGN KEY(framework_id) REFERENCES Framework(id)"
+        "FOREIGN KEY(directory_id) REFERENCES Directory_id(id)"
         "FOREIGN KEY(server_id) REFERENCES Server(id))";
     query = queryCreateConfigSite.c_str();
     this->execQuery(query, false);

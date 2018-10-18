@@ -27,6 +27,8 @@ class AllDataBase {
         void closeDataBase();
         void execQuery(const char* query, bool useCallBack);
         void createDataBase();
+        void insertServer(string []);
+        void insertFramework(string []);
         void printActiveProject();
         void getProject(string &);
         bool changePort(string nameProject, string server);

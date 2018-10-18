@@ -6,116 +6,50 @@
 #include "../lib/includes.h"
 #include "../lib/ConfigSiteTool.h"
 
-void executeTerminal() {
-	system("x-terminal-emulator -e");
+void help(char* executable) {
+	cout << "#### HELP ####" << endl;
+	cout << executable << " (-e|-iP|-iS|-iF|-iD) ARGS\n" << endl;
+	cout << "\t -e: Execute the app\n";
+	cout << "\t -iP: Insert existing and active project\n";
+	cout << "\t\t ARGS: \"Name\" Port\n";
+	cout << "\t -iS: Insert Server\n";
+	cout << "\t\t ARGS: \"Name\" \"Name1\" ...\n";
+	cout << "\t -iF: Insert Framework\n";
+	cout << "\t\t ARGS: \"Name\" \"Name1\" ...\n";
+	cout << "\t -iD: Insert Directory\n";
+	cout << "\t\t ARGS: \"Name\" \"Name1\" ...\n";
 }
 
-void selectServer(ConfigSiteTool &project) {
-	bool firstShow = true;
-	int option;
-	do{
-		if (firstShow) {
-			project.printMenu(0);
-			firstShow = false;
-		}
+void readInputAndSelect(int argc, char* argv[]) {
+	ConfigSiteTool *configSite;
+	configSite = new ConfigSiteTool();
+	string firstArg[] = {"-e", "-iP", "-iS", "-iF", "-iD", "-h"};
 
-		// Espera pela opção escolhida pelo utilizador
-		option = project.getOlyInteger("\nInsert valid option: ");
+	if (firstArg[0].compare(argv[1]) == 0) {
+		configSite->initExecution();
+	} else if (firstArg[1].compare(argv[1]) == 0) {
+
+	} else if (firstArg[2].compare(argv[1]) == 0) {
 		
-		// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
-		if(option < 1 || option > 3){
-			cout << "\nInsert valid option only!!!"<<endl;
-			cout<<"Insert an option: ";
-		}
-	}while (option < 1 || option > 3);
-
-	if (option == 3) exit(0);
-}
-
-void selectFramework(ConfigSiteTool &project, bool &isBack) {
-	bool firstShow = true;
-	int option;
-	do{
-		if (firstShow) {
-			project.printMenu(1);
-			firstShow = false;
-		}
-
-		// Espera pela opção escolhida pelo utilizador
-		option = project.getOlyInteger("\nInsert valid option: ");
+	} else if (firstArg[3].compare(argv[1]) == 0) {
 		
-		// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
-		if(option < 1 || option > 4){
-			cout << "\nInsert valid option only!!!"<<endl;
-			cout<<"Insert an option: ";
-		}
-	}while (option < 1 || option > 4);
+	} else if (firstArg[4].compare(argv[1]) == 0) {
 
-	if (option == 3) isBack = true;
-	else if (option == 4) exit(0);
+	} else if (firstArg[5].compare(argv[1]) == 0) {
+		help(argv[0]);
+	} else {
+		cout << "\nInvalid Argument\n\n";
+	}
+
+	// Delete
+	delete configSite;
 }
 
 /**
  * Main
  */
-int main(){
-	// Definições das vairiáveis
-	bool showMenu = true, firstRun=true, isBack = false;
-	int  opcao;
-
-	while(1) {
-		ConfigSiteTool *project;
-		project = new ConfigSiteTool();
-		
-		if (!firstRun){
-			cout << "\n\n\n### Operation finished! ###\n" << endl;
-		}
-
-		do{
-			// Se o menu não foi imprimido, então faz o print do mesmo
-	    	if (showMenu) {
-				selectServer(*project);
-				selectFramework(*project, isBack);
-
-				if (!isBack) project->printMenu(2);			
-	    		showMenu = false;
-	    	}
-
-			if (!isBack) {
-				// Espera pela opção escolhida pelo utilizador
-	      		opcao = project->getOlyInteger("\nInsert valid option: ");
-			} else {
-				opcao = 8;
-				isBack = false;
-			}
-	      	
-	      	// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
-	      	if(opcao < 1 || opcao > 9){
-				cout << "\nInsert valid option only!!!"<<endl;
-	  			cout<<"Insert an option: ";
-	      	}
-		}while (opcao < 1 || opcao > 9);
-
-		// Exit
-		if (opcao == 9) {
-			break;
-		}
-
-		if (opcao != 8) {
-			// Execute option selected
-        	project->executeOptionSelected(opcao);
-			firstRun = false;
-		} else {
-			system("clear");
-			firstRun = true;
-		}
-
-	  	// Change config for variable
-	  	showMenu = true;
-	  	opcao = -1;
-		delete project;
-	}
-  	
+int main(int argc, char *argv[]){
+	readInputAndSelect(argc, argv);	
   	// exit
   	return 0;
 }

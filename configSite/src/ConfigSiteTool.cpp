@@ -25,6 +25,106 @@ ConfigSiteTool::ConfigSiteTool() {
  */
 ConfigSiteTool::~ConfigSiteTool() {}
 
+void ConfigSiteTool::selectServer() {
+	bool firstShow = true;
+	int option;
+	do{
+		if (firstShow) {
+			this->printMenu(0);
+			firstShow = false;
+		}
+
+		// Espera pela opção escolhida pelo utilizador
+		option = this->getOlyInteger("\nInsert valid option: ");
+		
+		// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
+		if(option < 1 || option > 3){
+			cout << "\nInsert valid option only!!!"<<endl;
+			cout<<"Insert an option: ";
+		}
+	}while (option < 1 || option > 3);
+
+	if (option == 3) exit(0);
+}
+
+void ConfigSiteTool::selectFramework(bool &isBack) {
+	bool firstShow = true;
+	int option;
+	do{
+		if (firstShow) {
+			this->printMenu(1);
+			firstShow = false;
+		}
+
+		// Espera pela opção escolhida pelo utilizador
+		option = this->getOlyInteger("\nInsert valid option: ");
+		
+		// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
+		if(option < 1 || option > 4){
+			cout << "\nInsert valid option only!!!"<<endl;
+			cout<<"Insert an option: ";
+		}
+	}while (option < 1 || option > 4);
+
+	if (option == 3) isBack = true;
+	else if (option == 4) exit(0);
+}
+
+void ConfigSiteTool::initExecution() {
+	// Definições das vairiáveis
+	bool showMenu = true, firstRun=true, isBack = false;
+	int  opcao;
+
+	while(1) {		
+		if (!firstRun){
+			cout << "\n\n\n### Operation finished! ###\n" << endl;
+		}
+
+		do{
+			// Se o menu não foi imprimido, então faz o print do mesmo
+	    	if (showMenu) {
+				this->selectServer();
+				this->selectFramework(isBack);
+
+				if (!isBack) this->printMenu(2);			
+	    		showMenu = false;
+	    	}
+
+			if (!isBack) {
+				// Espera pela opção escolhida pelo utilizador
+	      		opcao = this->getOlyInteger("\nInsert valid option: ");
+			} else {
+				opcao = 8;
+				isBack = false;
+			}
+	      	
+	      	// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
+	      	if(opcao < 1 || opcao > 9){
+				cout << "\nInsert valid option only!!!"<<endl;
+	  			cout<<"Insert an option: ";
+	      	}
+		}while (opcao < 1 || opcao > 9);
+
+		// Exit
+		if (opcao == 9) {
+			break;
+		}
+
+		if (opcao != 8) {
+			// Execute option selected
+        	this->executeOptionSelected(opcao);
+			firstRun = false;
+		} else {
+			system("clear");
+			firstRun = true;
+		}
+
+	  	// Change config for variable
+	  	showMenu = true;
+	  	opcao = -1;
+	}
+}
+
 /**
  * Configura, activa e reinicia as novas configurações no apache
  */
