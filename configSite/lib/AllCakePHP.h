@@ -16,7 +16,7 @@ class AllCakePHP {
         string updateProjectCmd;
         string configProjectCmd;
         vector<vector<string>> resultDbConfig;
-        AllOperationGlobal classAllCommands;
+        AllOperationGlobal classAllOperationGlobal;
         AllApache classAllApache;
         AllDataBase classAllDataBase;
 
@@ -25,6 +25,7 @@ class AllCakePHP {
         ~AllCakePHP();
 
         void insertCakePHPInfoDB();
+        void setPermissionCakePHP(string, string);
         void newProjectCakePHP(string, string);
         void updateProjectCakePHP(string, string);
         void configProjectCakePHP(string, string);

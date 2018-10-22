@@ -9,17 +9,18 @@
 #include <cstdlib>	//Para system()
 #include <stdlib.h>	//Para system()
 #include <string>
+#include <string.h> // C library
 #include <sstream>	//Para converter inteiros em strings
 #include <cstdio>	//Para popen()
 #include <sqlite3.h> // Data Base Manager
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 /**
  * Include All Variables
  */
 const string APPFOLDER = "/opt/configSite/";
-const string APACHEVIRTUALCONF = APPFOLDER + "virtualConfApacheTemplate.conf";
 const string PORTOIDENTIFY = "PORTO";
 const string PATHIDENTIFY = "FULL_PATH_PROJECT";
 const string PATHWWW = "PATH_WWW";

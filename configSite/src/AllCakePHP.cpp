@@ -34,6 +34,21 @@ void AllCakePHP::insertCakePHPInfoDB() {
     this->classAllDataBase.execQuery(query.c_str());
 }
 
+void AllCakePHP::setPermissionCakePHP(string path, string nameProject) {
+    string fullPathLogs = "\"" + path + "/" + nameProject + "/logs" + "\"";
+    string fullPathTmp = "\"" + path + "/" + nameProject + "/tmp" + "\"";
+    string logsCmd = "mkdir -p " + fullPathLogs;
+    string tmpCmd = "mkdir -p " + fullPathTmp;
+
+    // Create logs em tmp dir if not exist
+    this->classAllOperationGlobal.executeCommands(logsCmd);
+    this->classAllOperationGlobal.executeCommands(tmpCmd);
+
+    // Set Permission
+    this->classAllOperationGlobal.setPermission(fullPathLogs, "777");
+    this->classAllOperationGlobal.setPermission(fullPathTmp, "777");
+}
+
 /**
  * Create new project
  */
@@ -42,13 +57,10 @@ void AllCakePHP::newProjectCakePHP(string path, string nameProject) {
     string command = this->newProjectCmd + " " + fullPath;
 
     // Execute
-    this->classAllCommands.executeCommands(command);
-
-    // Set Group apache
-    this->classAllApache.setGroupApache(fullPath);
+    this->classAllOperationGlobal.executeCommands(command);
 
     // Set Permission
-    this->classAllCommands.setPermission(fullPath);
+    this->setPermissionCakePHP(path, nameProject);
 }
 
 /**
@@ -59,10 +71,10 @@ void AllCakePHP::configProjectCakePHP(string path, string nameProject) {
     string command = this->configProjectCmd + " " + path;
 
     // Execute
-    this->classAllCommands.executeCommands(command);
+    this->classAllOperationGlobal.executeCommands(command);
 
     // Set Permission
-    this->classAllCommands.setPermission(fullPath);
+    this->setPermissionCakePHP(path, nameProject);
 }
 
 /**
@@ -70,42 +82,51 @@ void AllCakePHP::configProjectCakePHP(string path, string nameProject) {
  */
 void AllCakePHP::updateProjectCakePHP(string path, string nameProject) {
     string fullPath = "\"" + path + "/" + nameProject + "\"";
-    string command = this->updateProjectCmd + " " + path;
+    string command = this->updateProjectCmd + " " + fullPath;
 
     // Execute
-    this->classAllCommands.executeCommands(command);
+    this->classAllOperationGlobal.executeCommands(command);
 
     // Set Permission
-    this->classAllCommands.setPermission(fullPath);
+    this->setPermissionCakePHP(path, nameProject);
 }
 
 void AllCakePHP::printActiveProjectCakePHP() {
-    string query = "select ConfigSite.name_project, ConfigSite.port, Directory.directory, Server.name_server "
+    string query = "select ConfigSite.name_project, ConfigSite.port, ConfigSite.directory, Server.name_server "
 		"from ConfigSite "
-		"inner join Directory on ConfigSite.directory_id = Directory.id "
-        "inner join Server on ConfigSite.server_id = Server.id;";
+        "inner join Server on ConfigSite.server_id = Server.id "
+        "inner join Framework on ConfigSite.framework_id = Framework.id "
+        "where Framework.name_framework = 'CakePHP';";
 	this->resultDbConfig = this->classAllDataBase.execQueryReturnData(query.c_str());
 
-	for(vector< vector<string> >::iterator row = this->resultDbConfig.begin(); row != this->resultDbConfig.end(); ++row) {
-        int i = 1;
-        for(vector<string>::iterator col = row->begin(); col != row->end(); ++col) {
-            switch (i) {
-                case 1:
-                    cout << "Name" + this->classAllCommands.intToString(i) + ": ";
-                    break;
-                case 2:
-                    cout << "Port" + this->classAllCommands.intToString(i) + ": ";
-                    break;
-                case 3:
-                    cout << "Directory" + this->classAllCommands.intToString(i) + ": ";
-                    break;
-                case 4:
-                    cout << "Server" + this->classAllCommands.intToString(i) + ": ";
-                    break;
+    cout << endl;
+
+    if (this->resultDbConfig.empty()) {
+        cout << "Empty List..." << endl;
+    } else {
+        cout << "\nList of project on CakePHP" << endl << endl;
+        for(vector< vector<string> >::iterator row = this->resultDbConfig.begin(); row != this->resultDbConfig.end(); ++row) {
+            int index = 1, colIndex = 0;
+            for(vector<string>::iterator col = row->begin(); col != row->end(); ++col) {
+                switch (colIndex) {
+                    case 0:
+                        cout << "Name" + this->classAllOperationGlobal.intToString(index) + ": ";
+                        break;
+                    case 1:
+                        cout << "Port" + this->classAllOperationGlobal.intToString(index) + ": ";
+                        break;
+                    case 2:
+                        cout << "Directory" + this->classAllOperationGlobal.intToString(index) + ": ";
+                        break;
+                    case 3:
+                        cout << "Server" + this->classAllOperationGlobal.intToString(index) + ": ";
+                        break;
+                }
+                cout << *col << endl;
+                ++colIndex;
             }
-            cout << *col << endl;
-            ++i;
+            ++index;
+            cout << endl;
         }
-        cout << endl;
     }
 }

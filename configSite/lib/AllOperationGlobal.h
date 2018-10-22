@@ -21,6 +21,7 @@ class AllOperationGlobal {
         string sed;
         string chown;
         string chmod;
+        string chgrp;
         string otherFunctionsCommand;
 
     public:
@@ -37,11 +38,12 @@ class AllOperationGlobal {
         string getCommandCat(string);
         string getCommandSed(string);
         string getCommandChown(string);
+        string getCommandChgrp(string);
         string getCommandChmod(string);
 
         void executeCommands(string);
         string executeCommandsWithOutput(const char*);
-        void setPermission(string);
+        void setPermission(string, string);
         bool checkDirectory(string, string);
         bool checkFile(string, string);
         int getOlyInteger(string);

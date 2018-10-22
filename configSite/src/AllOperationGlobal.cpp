@@ -20,6 +20,7 @@ AllOperationGlobal::AllOperationGlobal() {
     this->sed = "sed";
     this->chown = "chown";
     this->chmod = "chmod";
+    this->chgrp = "chgrp";
     this->otherFunctionsCommand = APPFOLDER + "src/otherFunctionCommands.py";
 }
 
@@ -99,6 +100,13 @@ string AllOperationGlobal::getCommandChown(string params) {
 }
 
 /**
+ * Return chgrp command constructed
+ */
+string AllOperationGlobal::getCommandChgrp(string params) {
+    return this->chgrp + " " + params;
+}
+
+/**
  * Return chmod command constructed
  */
 string AllOperationGlobal::getCommandChmod(string params) {
@@ -109,7 +117,8 @@ string AllOperationGlobal::getCommandChmod(string params) {
  * Execute command
  */
 void AllOperationGlobal::executeCommands(string command) {
-    system(command.c_str());
+    const char * commandChar = command.c_str();
+    system(commandChar);
 }
 
 /**
@@ -137,8 +146,9 @@ string AllOperationGlobal::executeCommandsWithOutput(const char* command) {
 /**
  * Set Permission on path
  */
-void AllOperationGlobal::setPermission(string path) {
-    string command = "-R " + LEVELPERMISSION + " " + path;
+void AllOperationGlobal::setPermission(string path, string levelPermission) {
+    levelPermission = (levelPermission.length() == 0) ? LEVELPERMISSION : levelPermission;
+    string command = "-R " + levelPermission + " " + path;
     command = this->getCommandChmod(command);
     command = this->getCommandSudo(command);
 

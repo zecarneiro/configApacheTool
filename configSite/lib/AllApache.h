@@ -21,9 +21,10 @@ class AllApache {
         string apacheSitesAvailable;
         string portsConf;
         string extensionVirtualConf;
+        string apacheVirtualConfTemplate;
         string groupApache;
         vector<vector<string>> resultDbApache;
-        AllOperationGlobal classAllCommands;
+        AllOperationGlobal classAllOperationGlobal;
         AllDataBase classAllDataBase;
         
 

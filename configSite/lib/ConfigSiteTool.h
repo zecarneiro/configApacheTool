@@ -18,6 +18,8 @@ class ConfigSiteTool: public AllDataBase, public AllOperationGlobal, private All
         int serverSelected;
         int frameworkSelected;
         int portSelected;
+        string nameServerSelected;
+        string nameFrameworkSelected;
         vector<vector<string>> resultDbConfig;
         
     public:
@@ -38,13 +40,12 @@ class ConfigSiteTool: public AllDataBase, public AllOperationGlobal, private All
         void getPathProject();
         bool getPortProject(bool);
         bool getNameProject();
+        void setOperationDB(int);
         void executeAllNecessaryCommand(int);
         bool getInfoProjectDB();
         void configServer(bool, bool);
         void saveDeleteInfo(bool);
-
-        void createNewProject();
-        void printSelectedServer();
+        void insertProjectCLI(int, char *[]);
 };
 
 #endif // CONFIGSITETOOL_H

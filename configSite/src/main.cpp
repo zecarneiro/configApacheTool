@@ -20,14 +20,23 @@ void readInputAndSelect(int argc, char* argv[]) {
 	configSite = new ConfigSiteTool();
 	string firstArg[] = {"-e", "-iP", "-h"};
 
-	if (firstArg[0].compare(argv[1]) == 0) {
-		configSite->initExecution();
-	} else if (firstArg[1].compare(argv[1]) == 0) {
-	} else if (firstArg[2].compare(argv[1]) == 0) {
-		help(argv[0]);
+	if (argc > 1) {
+		if (firstArg[0].compare(argv[1]) == 0) {
+			configSite->initExecution();
+		} else if (firstArg[1].compare(argv[1]) == 0) {
+			if (argc >= 4) {
+				configSite->insertProjectCLI(argc, argv);
+			} else {
+				cout << "\nMinimum Argument acepted: 2\n\n";
+			}
+		} else if (firstArg[2].compare(argv[1]) == 0) {
+			help(argv[0]);
+		} else {
+			cout << "\nInvalid Argument\n\n";
+		}
 	} else {
 		cout << "\nInvalid Argument\n\n";
-	}
+	}	
 
 	// Delete
 	delete configSite;

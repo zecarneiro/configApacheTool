@@ -15,7 +15,7 @@ pathWWW="$pathHome/$nameWWW"
 declare appPath="configSite"
 declare appInstalationPath="/opt/"
 declare functionsFile="$appInstalationPath$appPath/src/functions.sh"
-declare executableAPP="$appInstalationPath$appPath/bin/$appPath"
+declare executableAPP="$appInstalationPath$appPath/bin/$appPath -e"
 declare iconAPP="$appInstalationPath$appPath/icons/$appPath.png"
 declare compileCommand="make -C $appInstalationPath$appPath/ -f $appInstalationPath$appPath/Makefile"
 
@@ -72,7 +72,6 @@ function uninstallConfigSite(){
 
 # Set Default path
 function setPath(){
-	local permission="777"
 	local fileToSetDefaultPath="$appInstalationPath$appPath/lib/includes.h"
 
 	echo "Default full path for projects: $pathWWW" 
@@ -83,9 +82,8 @@ function setPath(){
 		pathWWW="$path"
 	fi
 
-	# Create pathWWW and set permission
-	sudo mkdir -p "$pathWWW"
-	sudo chmod -R $permission "$pathWWW"
+	# Create pathWWW
+	mkdir -p "$pathWWW"
 
 	# Set Default path www on app
 	# sudo sed -i 's#PATH_WWW#localizacao_www#' /opt/configSite/includes.h
@@ -247,6 +245,7 @@ function main(){
 
 			# Compile
 			eval "$compileCommand"
+			echo
 
 			installServer
 			installPhp

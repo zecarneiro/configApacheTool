@@ -11,7 +11,6 @@
 ConfigSiteTool::ConfigSiteTool() {
 	// Create Default config folder
 	this->createConfigFolderCmd = "mkdir -p " + CONFIGFOLDER;
-	this->createConfigFolderCmd += " && chmod -R 777 " + CONFIGFOLDER;
 	this->executeCommands(this->createConfigFolderCmd);
 }
 
@@ -19,6 +18,27 @@ ConfigSiteTool::ConfigSiteTool() {
  * Destructor
  */
 ConfigSiteTool::~ConfigSiteTool() {}
+
+void ConfigSiteTool::insertProjectCLI(int argc, char* argv[]) {
+	bool isBack;
+	this->nomeProjecto = argv[2];
+	this->porto = this->stringToInt(argv[3]);
+
+	if (argc < 5) {
+		this->pathWWW = PATHWWW;
+	} else {
+		this->pathWWW = (strlen(argv[4]) == 0) ? PATHWWW : argv[4];
+	}
+
+	this->selectServer();
+	cout << endl;
+	this->selectFramework(isBack);
+
+	// Save New Info
+	this->saveDeleteInfo(false);
+
+	cout << "Operation Finished\n";
+}
 
 /**
  * Save info on file
@@ -60,9 +80,8 @@ void ConfigSiteTool::configServer(bool isDisable, bool isChangePort) {
  * Get info of project on DB
  */
 bool ConfigSiteTool::getInfoProjectDB() {
-	string query = "select ConfigSite.port, Directory.directory "
+	string query = "select port, directory "
 		"from ConfigSite "
-		"inner join Directory on ConfigSite.directory_id = Directory.id "
 		"where ConfigSite.name_project = '" + this->nomeProjecto + "';";
 	this->resultDbConfig = this->execQueryReturnData(query.c_str());
 
@@ -102,14 +121,34 @@ void ConfigSiteTool::executeAllNecessaryCommand(int option) {
 			}
 			break;
 		case 5:
-			this->updateProjectCakePHP(this->pathWWW, this->nomeProjecto);
+			if (this->getInfoProjectDB()) {
+				this->updateProjectCakePHP(this->pathWWW, this->nomeProjecto);
+			}
 			break;
 		case 6:
 			this->configServer(false, false);
 			break;
 		case 7:
+			this->executeCommands("clear");
 			this->printActiveProjectCakePHP();
 			break;
+	}
+}
+
+void ConfigSiteTool::setOperationDB(int opcao) {
+	string query;
+	switch(opcao) {
+		case 3:
+			query = "update ConfigSite "
+			"set port = '" + this->intToString(this->porto) + "' "
+			"where name_project = '" + this->nomeProjecto + "';";
+			this->execQuery(query.c_str());
+			break;
+		case 4:
+			this->saveDeleteInfo(true);
+			break;
+		default:
+			if (opcao != 7 && opcao != 5) this->saveDeleteInfo(false);
 	}
 }
 
@@ -147,9 +186,7 @@ bool ConfigSiteTool::getPortProject(bool isChange) {
 		// Pede o porto enquanto o portio indicado já esta a ser usado
 		porto = this->intToString(this->porto);
 		while(this->checkPortsUsedApache(porto) || this->porto <= 0) {
-			if (this->porto == -1) {
-				break;
-			} else if (this->porto <= 0) {
+			if (this->porto <= 0) {
 				cout << "Port is only positive." << endl;
 			} else {
 				cout << "Port inserted is used by other project." << endl;
@@ -158,6 +195,10 @@ bool ConfigSiteTool::getPortProject(bool isChange) {
 			cout << printMessagePorto;
 			this->porto = this->getOlyInteger(errorPortoMessage);
 			porto = this->intToString(this->porto);
+
+			if (this->porto == -1) {
+				break;
+			}
 		}
 	}
 
@@ -199,21 +240,14 @@ void ConfigSiteTool::executeOptionSelected(int opcao) {
 		}
 	} else if (opcao == 4 || opcao == 5) {
 		cancel = this->getNameProject();
-	} else {
-		// Show all project
+	} else if (opcao == 7) {
+		cancel = false;
 	}
 
     // Executa se a opcao não fôr sair
     if (!cancel) {
         this->executeAllNecessaryCommand(opcao);
-		if (opcao == 3) {
-			string query = "update ConfigSite "
-				"set port = '" + this->intToString(this->porto) + "' "
-				"where name_project = '" + this->nomeProjecto + "';";
-			this->execQuery(query.c_str());
-		} else {
-			this->saveDeleteInfo(false);
-		}
+		this->setOperationDB(opcao);
     }
 }
 
@@ -226,8 +260,8 @@ void ConfigSiteTool::printMenu() {
 	cout << "2 - Config existing project(Run composer install)" << endl;
 	cout << "3 - Change port for an project(For activated project)" << endl;
 	cout << "4 - Disable an existing project(Not delete project folder)" << endl;
-	cout << "5 - Update existing project" << endl;
-	cout << "6 - Only activate project(On apache)" << endl;
+	cout << "5 - Update existing project(Only Run Composer update)" << endl;
+	cout << "6 - Activate project already configured(On Server)" << endl;
 	cout << "7 - Show all active project" << endl;
 	cout << "8 - Back HOME" << endl;
 	cout << "9 - Exit" << endl;
@@ -271,7 +305,7 @@ void ConfigSiteTool::selectFramework(bool &isBack) {
 			
 			// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
 			if(option < 1 || option > 3){
-				cout << "\nInsert valid option only!!!"<<endl;
+				cout << "\nInsert valid option only!!!"<< endl;
 				cout<<"Insert an option: ";
 			}
 		}while (option < 1 || option > 3);
@@ -282,6 +316,11 @@ void ConfigSiteTool::selectFramework(bool &isBack) {
 	if (option == 2) isBack = true;
 	else if (option == 3) exit(0);
 	this->frameworkSelected = option;
+
+	// Get name Framework
+	query = "select name_framework from Framework where id = '" + this->intToString(option) + "';";
+	this->resultDbConfig = this->execQueryReturnData(query.c_str());
+	this->nameFrameworkSelected = this->resultDbConfig[0][0];
 }
 
 /**
@@ -325,6 +364,11 @@ void ConfigSiteTool::selectServer() {
 
 	if (option == 3) exit(0);
 	this->serverSelected = option;
+
+	// Get name Server
+	query = "select name_server from Server where id = '" + this->intToString(option) + "';";
+	this->resultDbConfig = this->execQueryReturnData(query.c_str());
+	this->nameServerSelected = this->resultDbConfig[0][0];
 }
 
 /**
@@ -335,11 +379,7 @@ void ConfigSiteTool::initExecution() {
 	bool showMenu = true, firstRun=true, isBack = false;
 	int  opcao = -1;
 
-	while(1) {		
-		if (!firstRun){
-			cout << "\n\n\n### Operation finished! ###\n" << endl;
-		}
-
+	while(1) {
 		do{
 			// Se o menu não foi imprimido, então faz o print do mesmo
 	    	if (showMenu) {
@@ -347,9 +387,17 @@ void ConfigSiteTool::initExecution() {
 					this->selectServer();
 					cout << endl;
 					this->selectFramework(isBack);
-					cout << endl;
+					this->executeCommands("clear");
 				}
-				if (!isBack) this->printMenu();			
+				if (!isBack) {
+					if (!firstRun){
+						cout << "\n\n\n### Operation finished! ###\n" << endl;
+					}
+
+					cout << "Server Selected: " << this->nameServerSelected << endl;
+					cout << "Framweork Selected: " << this->nameFrameworkSelected << endl;
+					this->printMenu();
+				}			
 	    		showMenu = false;
 	    	}
 
@@ -379,7 +427,7 @@ void ConfigSiteTool::initExecution() {
 			firstRun = false;
 			opcao = 0;
 		} else {
-			system("clear");
+			this->executeCommands("clear");
 			firstRun = true;
 			opcao = -1;
 		}

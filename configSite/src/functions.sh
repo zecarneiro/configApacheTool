@@ -163,6 +163,15 @@ function execCommandGetOutput(){
     echo "$response"
 }
 
+function chownCmd(){
+	local user="$1"
+	local group="$2"
+	local pathFile="$3"
+
+	# Execute command
+	eval "sudo chown -R $user:$group $pathFile"
+}
+
 # Install
 function install(){
     local -a apps=($1)
@@ -238,6 +247,9 @@ function main(){
         "-eCmd")
             execCommandGetOutput "${args[@]}"
             ;;
+        "-chown")
+			chownCmd "${args[@]}"
+			;;
         "-i")
             install "${args[@]}"
             ;;
