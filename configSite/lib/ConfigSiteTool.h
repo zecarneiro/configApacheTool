@@ -15,10 +15,10 @@
 class ConfigSiteTool: public AllDataBase, public AllOperationGlobal, private AllApache, public AllCakePHP {
     private:
         string createConfigFolderCmd;
-        int idServerSelected;
-        int idFrameworkSelected;
-        int idDirectorySelected;
+        int serverSelected;
+        int frameworkSelected;
         int portSelected;
+        vector<vector<string>> resultDbConfig;
         
     public:
         string nomeProjecto;
@@ -29,17 +29,22 @@ class ConfigSiteTool: public AllDataBase, public AllOperationGlobal, private All
         /* Methods */
         ConfigSiteTool();
         ~ConfigSiteTool();
+
         void initExecution();
         void selectServer();
         void selectFramework(bool &);
-        void printMenu(int);
-        void getInfoProject(int, bool);
-        void configApache(bool);
-        void executeAllNecessaryCommand(int);
-        void saveInfo(string, int, bool);
-        void disableProject();
-        void createNewProject();
+        void printMenu();
         void executeOptionSelected(int);
+        void getPathProject();
+        bool getPortProject(bool);
+        bool getNameProject();
+        void executeAllNecessaryCommand(int);
+        bool getInfoProjectDB();
+        void configServer(bool, bool);
+        void saveDeleteInfo(bool);
+
+        void createNewProject();
+        void printSelectedServer();
 };
 
 #endif // CONFIGSITETOOL_H

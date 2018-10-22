@@ -12,6 +12,7 @@
 #include <sstream>	//Para converter inteiros em strings
 #include <cstdio>	//Para popen()
 #include <sqlite3.h> // Data Base Manager
+#include <vector>
 using namespace std;
 
 /**

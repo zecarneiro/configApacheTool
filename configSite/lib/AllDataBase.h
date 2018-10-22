@@ -25,26 +25,10 @@ class AllDataBase {
 
         void openDataBase();
         void closeDataBase();
-        void execQuery(const char* query, bool useCallBack);
+        void execQuery(const char* query);
+        vector<vector<string> > execQueryReturnData(const char*);
         void createDataBase();
-        void insertServer(string []);
-        void insertFramework(string []);
-        void printActiveProject();
-        void getProject(string &);
-        bool changePort(string nameProject, string server);
-        bool deleteActiveProject(string nameProject, string server);
-        static int callback(void *unused, int count, char **data, char **columns) {
-            int idx;
-
-            cout << "There are " << count << " column(s)\n";
-
-            for (idx = 0; idx < count; idx++) {
-                cout << "The data in column \"" << columns[idx] << "\" is: " << data[idx] << "\n";
-            }
-
-            cout << endl;
-            return 0;
-        }
+        void savePrintError();
 };
 
 #endif // ALLAPACHE_H

@@ -7,6 +7,7 @@
 
 #include "../lib/includes.h"
 #include "../lib/AllOperationGlobal.h"
+#include "../lib/AllDataBase.h"
 
 /* Definition to all necessary apache config */
 class AllApache {
@@ -21,11 +22,19 @@ class AllApache {
         string portsConf;
         string extensionVirtualConf;
         string groupApache;
+        vector<vector<string>> resultDbApache;
         AllOperationGlobal classAllCommands;
+        AllDataBase classAllDataBase;
+        
 
     public:
         AllApache();
         ~AllApache();
+
+        string getGroupApache();
+        void insertApacheInfoDB();
+        void configApache(string, string, int, int, bool);
+        void disableSiteApache(string, int);
 
         void setGroupApache(string);
         void reloadRestartApache(int);
@@ -35,7 +44,6 @@ class AllApache {
         void deleteVirtualConfFileApache(string);
         bool checkPortsUsedApache(string);
         void enableSiteApache(string);
-        void disableSiteApache(string);
         void copyVirtualConfApache(string);
         bool checkVirtualConfExistApache(string);
 };

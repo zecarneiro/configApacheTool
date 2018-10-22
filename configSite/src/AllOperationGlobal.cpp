@@ -167,6 +167,13 @@ bool AllOperationGlobal::checkFile(string path, string nameFile) {
 }
 
 /**
+ * Convert string to intinger
+ */
+int AllOperationGlobal::stringToInt(string integer) {
+    return stoi(integer);
+}
+
+/**
  * Convert intinger to string
  */
 string AllOperationGlobal::intToString(int integerToString) {

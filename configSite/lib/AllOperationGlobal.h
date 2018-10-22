@@ -47,6 +47,7 @@ class AllOperationGlobal {
         int getOlyInteger(string);
         void clearCin();
         string intToString(int);
+        int stringToInt(string);
         void logError(string);
 };
 #endif // ALLCOMMANDS_H
