@@ -9,9 +9,17 @@
  * Constructor
  */
 ConfigSiteTool::ConfigSiteTool() {
-	// Create Default config folder
-	this->createConfigFolderCmd = "mkdir -p " + CONFIGFOLDER;
-	this->executeCommands(this->createConfigFolderCmd);
+	this->serverSelected = 0;
+	this->frameworkSelected = 0;
+	this->portSelected = 0;
+
+	this->nameServerSelected = "";
+	this->nameFrameworkSelected = "";
+	
+	this->nomeProjecto = "";
+	this->oldPorto = "";
+	this->porto = "";
+	this->pathWWW = "";
 }
 
 /**
@@ -19,129 +27,78 @@ ConfigSiteTool::ConfigSiteTool() {
  */
 ConfigSiteTool::~ConfigSiteTool() {}
 
-void ConfigSiteTool::insertProjectCLI(int argc, char* argv[]) {
-	bool isBack;
-	this->nomeProjecto = argv[2];
-	this->porto = this->stringToInt(argv[3]);
-
-	if (argc < 5) {
-		this->pathWWW = PATHWWW;
-	} else {
-		this->pathWWW = (strlen(argv[4]) == 0) ? PATHWWW : argv[4];
-	}
-
-	this->selectServer();
-	cout << endl;
-	this->selectFramework(isBack);
-
-	// Save New Info
-	this->saveDeleteInfo(false);
-
-	cout << "Operation Finished\n";
-}
-
+/*********************************************************************************************
+ * DATA BASE METHODS
+ ********************************************************************************************/
 /**
- * Save info on file
+ * Save info on Data Base
  */
 void ConfigSiteTool::saveDeleteInfo(bool isDelete) {
+	bool isNameEmpty = this->nomeProjecto.length() == 0;
+	bool isPortEmpty = this->porto.length() == 0;
+	bool isPathEmpty = this->pathWWW.length() == 0;
+	bool setChange = false;
+
 	string query;
 	if (isDelete) {
-		query = "delete from ConfigSite where name_project = '" + this->nomeProjecto + "';";
+		if (isNameEmpty) cout << "\nName of project can be empty...\n";
+		else setChange = true;
+
+		query = "DELETE FROM ConfigSite where name = '" + this->nomeProjecto + "';";
 	} else {
-		query = "INSERT INTO ConfigSite(name_project,port,directory,framework_id,server_id) "
+		if (!isNameEmpty && !isPortEmpty && !isPathEmpty) setChange = true;
+		else cout << "\nName/Port/Path of project can be empty...\n";
+
+		query = "INSERT INTO ConfigSite(name,port,directory,framework_id,server_id) "
         	"VALUES ("
 			"'" + this->nomeProjecto + "',"
-			"'" + this->intToString(this->porto) + "',"
+			"'" + this->porto + "',"
 			"'" + this->pathWWW + "',"
 			"'" + this->intToString(this->frameworkSelected) + "',"
 			"'" + this->intToString(this->serverSelected) + "'"
 			");"; 
 	}
-	this->execQuery(query.c_str());
-}
 
-/**
- * Configura, activa e reinicia as novas configurações no apache
- */
-void ConfigSiteTool::configServer(bool isDisable, bool isChangePort) {
-	switch (this->serverSelected) {
-		case 1: // Apache
-			if (isDisable) {
-				this->disableSiteApache(this->nomeProjecto, this->oldPorto);
-			} else {
-				this->configApache(this->nomeProjecto, this->pathWWW, this->porto, this->oldPorto, isChangePort);
-			}
-			break;
-	}
-	
+	// Execute Query
+	if (setChange) this->execQuery(query.c_str());
 }
 
 /**
  * Get info of project on DB
  */
 bool ConfigSiteTool::getInfoProjectDB() {
-	string query = "select port, directory "
-		"from ConfigSite "
-		"where ConfigSite.name_project = '" + this->nomeProjecto + "';";
+	string query = "SELECT port, directory "
+		"FROM ConfigSite "
+		"INNER JOIN Server ON ConfigSite.server_id = Server.id "
+		"INNER JOIN Framework ON ConfigSite.framework_id = Framework.id "
+		"WHERE ConfigSite.name = '" + this->nomeProjecto + "' "
+		"AND ConfigSite.server_id = " + this->intToString(this->serverSelected) + " "
+		"AND ConfigSite.framework_id = " + this->intToString(this->frameworkSelected) + ";";
+	
+	// Execute Query
 	this->resultDbConfig = this->execQueryReturnData(query.c_str());
 
 	if (this->resultDbConfig.empty()) {
 		cout << "Not exist " + this->nomeProjecto + " on data base" << endl;
 		return false;
 	} else {
-		this->oldPorto = this->stringToInt(this->resultDbConfig[0][0]);
+		this->oldPorto = this->resultDbConfig[0][0];
 		this->pathWWW = this->resultDbConfig[0][1];
+		cout << this->oldPorto << " " << this->pathWWW << endl;
 		return true;
 	}
 }
 
 /**
- * Execute all necessary command. Call apache command here
+ * Set Operation on Data Base by user option selected
  */
-void ConfigSiteTool::executeAllNecessaryCommand(int option) {
-	switch (option) {
-		case 1:
-			// Create new Project
-			this->newProjectCakePHP(this->pathWWW, this->nomeProjecto);
-			this->configServer(false, false);
-			break;
-		case 2:
-			// Config existing Project
-			this->configProjectCakePHP(this->pathWWW, this->nomeProjecto);
-			this->configServer(false, false);
-			break;
-		case 3:
-			if (this->getInfoProjectDB()) {
-				this->configServer(false, true);
-			}
-			break;
-		case 4:
-			if (this->getInfoProjectDB()) {
-				this->configServer(true, false);
-			}
-			break;
-		case 5:
-			if (this->getInfoProjectDB()) {
-				this->updateProjectCakePHP(this->pathWWW, this->nomeProjecto);
-			}
-			break;
-		case 6:
-			this->configServer(false, false);
-			break;
-		case 7:
-			this->executeCommands("clear");
-			this->printActiveProjectCakePHP();
-			break;
-	}
-}
-
 void ConfigSiteTool::setOperationDB(int opcao) {
 	string query;
 	switch(opcao) {
 		case 3:
-			query = "update ConfigSite "
-			"set port = '" + this->intToString(this->porto) + "' "
-			"where name_project = '" + this->nomeProjecto + "';";
+			query = "UPDATE ConfigSite "
+			"SET port = '" + this->porto + "' "
+			"WHERE name = '" + this->nomeProjecto + "';";
 			this->execQuery(query.c_str());
 			break;
 		case 4:
@@ -153,6 +110,231 @@ void ConfigSiteTool::setOperationDB(int opcao) {
 }
 
 /**
+ * Print All Project
+ */
+void ConfigSiteTool::printActiveProject() {
+    string query = 
+		"SELECT ConfigSite.name, ConfigSite.port, ConfigSite.directory, Server.name, Framework.name "
+		"FROM ConfigSite "
+        "JOIN Server on ConfigSite.server_id = Server.id "
+        "JOIN Framework on ConfigSite.framework_id = Framework.id;";
+
+    // Execute Query
+	this->resultDbConfig = this->execQueryReturnData(query.c_str());
+
+    cout << endl;
+
+    if (this->resultDbConfig.empty()) {
+        cout << "Empty List..." << endl;
+    } else {
+        cout << "\nList of project" << endl << endl;
+        for(vector< vector<string> >::iterator row = this->resultDbConfig.begin(); row != this->resultDbConfig.end(); ++row) {
+            int index = 1, colIndex = 0;
+            for(vector<string>::iterator col = row->begin(); col != row->end(); ++col) {
+                switch (colIndex) {
+                    case 0:
+                        cout << "Name" + this->intToString(index) + ": ";
+                        break;
+                    case 1:
+                        cout << "Port" + this->intToString(index) + ": ";
+                        break;
+                    case 2:
+                        cout << "Directory" + this->intToString(index) + ": ";
+                        break;
+                    case 3:
+                        cout << "Server" + this->intToString(index) + ": ";
+                        break;
+					case 4:
+                        cout << "Framework" + this->intToString(index) + ": ";
+                        break;
+                }
+                cout << *col << endl;
+                ++colIndex;
+            }
+            ++index;
+            cout << endl;
+        }
+    }
+}
+
+/*********************************************************************************************
+ * CONFIG SERVER AND FRAMEWORK
+ ********************************************************************************************/
+/**
+ * Configura, activa e reinicia as novas configurações no apache
+ */
+void ConfigSiteTool::configServer(string operation) {
+	switch (this->serverSelected) {
+		case 1: // Apache
+			this->configApache(operation, this->nomeProjecto, this->oldPorto);
+			break;
+	}
+}
+
+void ConfigSiteTool::configFramework(string operation) {
+	switch (this->frameworkSelected) {
+		case 1: // CakePHP
+			this->setOperationCakePHP(operation, this->pathWWW, this->nomeProjecto);
+			break;
+	}
+}
+
+/*********************************************************************************************
+ * PRINT MENU AND SELECT SERVER, FRAMEWORK AND OTHER OPERATION
+ ********************************************************************************************/
+/**
+ * Select Server
+ */
+int ConfigSiteTool::selectServer() {
+	int option;
+
+	// Get list of server
+	string query = "SELECT id, name FROM Server;";
+    this->resultDbConfig = this->execQueryReturnData(query.c_str());
+
+	for(vector< vector<string> >::iterator row = this->resultDbConfig.begin(); row != this->resultDbConfig.end(); ++row) {
+		int i = 0;
+		for(vector<string>::iterator col = row->begin(); col != row->end(); ++col) {
+			cout << *col;
+			if ( i == 0) {
+				cout << " - ";
+				++i;
+			}
+		}
+		cout << endl;
+	}
+	cout << "3 - Exit" << endl;
+	cout << "Insert an option: ";
+
+	do{
+		option = this->getOlyInteger("Insert only integers: ");
+		
+		// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
+		if(option < 1 || option > 3){
+			cout << "\nInsert valid option only!!!"<<endl;
+			cout << "Insert an option: ";
+		}
+	}while (option < 1 || option > 3);
+
+	// Exit
+	if (option == 3) option = _EXITCODE;
+	else {
+		cout << endl;
+		this->serverSelected = option;
+
+		// Get name Server
+		query = "SELECT name FROM Server WHERE id = '" + this->intToString(option) + "';";
+		this->resultDbConfig = this->execQueryReturnData(query.c_str());
+		this->nameServerSelected = this->resultDbConfig[0][0];
+	}
+
+	// Return user option inserted
+	return option;
+}
+
+/**
+ * Select Framework
+ */
+int ConfigSiteTool::selectFramework() {
+	int option;
+
+	// Get list of server
+	string query = "SELECT id, name FROM Framework;";
+    this->resultDbConfig = this->execQueryReturnData(query.c_str());
+
+	if (!this->resultDbConfig.empty()) {
+		// Print Menu
+		for(vector< vector<string> >::iterator row = this->resultDbConfig.begin(); row != this->resultDbConfig.end(); ++row) {
+			int i = 0;
+			for(vector<string>::iterator col = row->begin(); col != row->end(); ++col) {
+				cout << *col;
+				if ( i == 0) {
+					cout << " - ";
+					++i;
+				}
+			}
+			cout << endl;
+		}
+		cout << "2 - Back HOME" << endl;
+		cout << "3 - Exit" << endl;
+		cout << "Insert an option: ";
+
+		do{
+			option = this->getOlyInteger("Insert only integers: ");		
+			
+			// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
+			if(option < 1 || option > 3){
+				cout << "\nInsert valid option only!!!"<< endl;
+				cout << "Insert an option: ";
+			}
+		}while (option < 1 || option > 3);
+
+		if (option == 3) option = _EXITCODE; // EXIT
+		else if (option == 2) option = _RETURNCODE; // RETURN
+		else {
+			cout << endl;
+			this->frameworkSelected = option;
+
+			// Get name Framework
+			query = "SELECT name FROM Framework WHERE id = '" + this->intToString(option) + "';";
+			this->resultDbConfig = this->execQueryReturnData(query.c_str());
+			this->nameFrameworkSelected = this->resultDbConfig[0][0];
+		}
+	} else {
+		option = _RETURNCODE;
+	}
+
+	// Return user option inserted
+	return option;
+}
+
+/**
+ * Select Operation
+ */
+int ConfigSiteTool::selectOperation() {
+	int option;
+
+	// Print Server and Framework Selected
+	cout << "Server Selected: " << this->nameServerSelected << endl;
+	cout << "Framweork Selected: " << this->nameFrameworkSelected << endl;
+
+	// Print Menu
+	cout << "\n Options 1, 2, 3 and 6 also activate project on apache !!!\n\n";
+	cout << "1 - Create new project" << endl;
+	cout << "2 - Config existing project(Run composer install)" << endl;
+	cout << "3 - Change port for an project(For activated project)" << endl;
+	cout << "4 - Disable an existing project(Not delete project folder)" << endl;
+	cout << "5 - Update existing project(Only Run Composer update)" << endl;
+	cout << "6 - Activate project already configured(On Server)" << endl;
+	cout << "7 - Show all active project on " + this->nameFrameworkSelected  << endl;
+	cout << "8 - Show all active project"  << endl;
+	cout << "9 - Back HOME" << endl;
+	cout << "10 - Exit" << endl;
+	cout << "Insert an option: ";
+
+	do{
+		option = this->getOlyInteger("Insert only integers: ");
+
+		// Invalid Inserted
+		if(option < 1 || option > 10){
+			cout << "\nInsert valid option only!!!"<<endl;
+			cout << "Insert an option: ";
+		}
+	}while (option < 1 || option > 10);
+
+	if (option == 10) option = _EXITCODE; // EXIT
+	else if (option == 9) option = _RETURNCODE; // RETURN
+
+	cout << endl;
+
+	// Return user option selected
+	return option;
+}
+
+/*********************************************************************************************
+ * GET PROJECT INFO
+ ********************************************************************************************/
+/**
  * Get Name for Project
  */
 bool ConfigSiteTool::getNameProject() {
@@ -163,46 +345,6 @@ bool ConfigSiteTool::getNameProject() {
 	cout << "Insert project name(PRESS ENTER TO CANCEL): ";
 	getline(cin, this->nomeProjecto);
 	return (this->nomeProjecto.length() == 0) ? true : false;
-}
-
-/**
- * Get Port for Project
- */
-bool ConfigSiteTool::getPortProject(bool isChange) {
-	string porto, printMessagePorto, errorPortoMessage, msgCancel;
-
-	this->porto = -1;
-	errorPortoMessage = "\nInsert valid port: ";
-	msgCancel = "PRESS -1 TO CANCEL";
-	printMessagePorto = (!isChange) ?
-		"Insert port(" + msgCancel + "): " :
-		"Insert new port(" + msgCancel + "): ";
-
-	cout << printMessagePorto;
-	this->porto = this->getOlyInteger(errorPortoMessage);
-	this->clearCin();
-
-	if (this->porto != -1) {
-		// Pede o porto enquanto o portio indicado já esta a ser usado
-		porto = this->intToString(this->porto);
-		while(this->checkPortsUsedApache(porto) || this->porto <= 0) {
-			if (this->porto <= 0) {
-				cout << "Port is only positive." << endl;
-			} else {
-				cout << "Port inserted is used by other project." << endl;
-			}
-
-			cout << printMessagePorto;
-			this->porto = this->getOlyInteger(errorPortoMessage);
-			porto = this->intToString(this->porto);
-
-			if (this->porto == -1) {
-				break;
-			}
-		}
-	}
-
-	return (this->porto == -1) ? true : false;
 }
 
 /**
@@ -221,154 +363,119 @@ void ConfigSiteTool::getPathProject() {
 }
 
 /**
+ * Get Port for Project
+ */
+bool ConfigSiteTool::getPortProject(bool isChange) {
+	int porto;
+	string printMessagePorto, errorPortoMessage, msgCancel;
+
+	porto = -1;
+	errorPortoMessage = "\nInsert valid port: ";
+	msgCancel = "PRESS -1 TO CANCEL";
+	printMessagePorto = (!isChange) ?
+		"Insert port(" + msgCancel + "): " :
+		"Insert new port(" + msgCancel + "): ";
+
+	cout << printMessagePorto;
+	porto = this->getOlyInteger(errorPortoMessage);
+
+	if (porto != -1) {
+		// Pede o porto enquanto o portio indicado já esta a ser usado
+		this->porto = this->intToString(porto);
+		while(this->checkPortsUsedApache(this->porto) || porto <= 0) {
+			if (porto <= 0) {
+				cout << "Port is only positive." << endl;
+			} else {
+				cout << "Port inserted is used by other project." << endl;
+			}
+
+			cout << printMessagePorto;
+			porto = this->getOlyInteger(errorPortoMessage);
+			this->porto = this->intToString(porto);
+
+			if (porto == -1) {
+				break;
+			}
+		}
+	}
+
+	return (porto == -1) ? true : false;
+}
+
+/**
  * Execute Option selected
  */
-void ConfigSiteTool::executeOptionSelected(int opcao) {
-	bool cancel = true;
-	if (opcao == 1 || opcao == 2 || opcao == 6) {
-		cancel = this->getNameProject();
-		if (!cancel) {
-			cancel = this->getPortProject(false);
-			if (!cancel) {
+bool ConfigSiteTool::executeOptionSelected(int option) {
+	bool isCancel = true;
+	if (option == 1 || option == 2 || option == 6) {
+		isCancel = this->getNameProject();
+		if (!isCancel) {
+			isCancel = this->getPortProject(false);
+			if (!isCancel) {
 				this->getPathProject();
 			}
 		}
-	} else if (opcao == 3) {
-		cancel = this->getNameProject();
-		if (!cancel) {
-			cancel = this->getPortProject(true);
+	} else if (option == 3) {
+		isCancel = this->getNameProject();
+		if (!isCancel) {
+			isCancel = this->getPortProject(true);
 		}
-	} else if (opcao == 4 || opcao == 5) {
-		cancel = this->getNameProject();
-	} else if (opcao == 7) {
-		cancel = false;
+	} else if (option == 4 || option == 5) {
+		isCancel = this->getNameProject();
+	} else if (option == 7 || option == 8) {
+		isCancel = false;
 	}
-
-    // Executa se a opcao não fôr sair
-    if (!cancel) {
-        this->executeAllNecessaryCommand(opcao);
-		this->setOperationDB(opcao);
-    }
+    return isCancel;
 }
 
+/*********************************************************************************************
+ * OTHER
+ ********************************************************************************************/
 /**
- * Print Menu
+ * Execute all necessary command. Call apache command here
  */
-void ConfigSiteTool::printMenu() {
-	cout << "\n Options 1, 2, 3 and 6 also activate project on apache !!!\n\n";
-	cout << "1 - Create new project" << endl;
-	cout << "2 - Config existing project(Run composer install)" << endl;
-	cout << "3 - Change port for an project(For activated project)" << endl;
-	cout << "4 - Disable an existing project(Not delete project folder)" << endl;
-	cout << "5 - Update existing project(Only Run Composer update)" << endl;
-	cout << "6 - Activate project already configured(On Server)" << endl;
-	cout << "7 - Show all active project" << endl;
-	cout << "8 - Back HOME" << endl;
-	cout << "9 - Exit" << endl;
-	cout << "Insert an option: ";
-}
-
-/**
- * Select Framework
- */
-void ConfigSiteTool::selectFramework(bool &isBack) {
-	// Get list of server
-	string query = "select id, name_framework from Framework;";
-    this->resultDbConfig = this->execQueryReturnData(query.c_str());
-
-	bool firstShow = true;
-	int option;
-
-	if (!this->resultDbConfig.empty()) {
-		do{
-			if (firstShow) {
-				for(vector< vector<string> >::iterator row = this->resultDbConfig.begin(); row != this->resultDbConfig.end(); ++row) {
-					int i = 0;
-					for(vector<string>::iterator col = row->begin(); col != row->end(); ++col) {
-						cout << *col;
-						if ( i == 0) {
-							cout << " - ";
-							++i;
-						}
-					}
-					cout << endl;
-				}
-				cout << "2 - Back HOME" << endl;
-				cout << "3 - Exit" << endl;
-				cout << "Insert an option: ";
-
-				firstShow = false;
+void ConfigSiteTool::executeAllNecessaryCommand(int option) {
+	switch (option) {
+		case 1: // Create new Project
+			this->setOperationDB(option);
+			this->configFramework("new");
+			this->configServer("enable");
+			break;
+		case 2: // Config existing Project
+			this->setOperationDB(option);
+			this->configFramework("config");
+			this->configServer("enable");
+			break;
+		case 3: // Change port for an project
+			if (this->getInfoProjectDB()) {
+				this->setOperationDB(option);
+				this->configServer("changePort");
 			}
-
-			// Espera pela opção escolhida pelo utilizador
-			option = this->getOlyInteger("\nInsert valid option: ");
-			
-			// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
-			if(option < 1 || option > 3){
-				cout << "\nInsert valid option only!!!"<< endl;
-				cout<<"Insert an option: ";
+			break;
+		case 4: // Disable an existing project
+			if (this->getInfoProjectDB()) {
+				this->configServer("disable");
+				this->setOperationDB(option);
 			}
-		}while (option < 1 || option > 3);
-	} else {
-		option = 2;
+			break;
+		case 5: // Update existing project
+			if (this->getInfoProjectDB()) {
+				this->configFramework("update");
+			}
+			break;
+		case 6: // Activate project already configured
+			this->setOperationDB(option);
+			this->configServer("enable");
+			break;
+		case 7: // Show all active project by framework and server
+			this->executeCommands("clear");
+			this->configFramework("");
+			break;
+		case 8: // Show all active project
+			this->executeCommands("clear");
+			this->printActiveProject();
+			break;
 	}
-
-	if (option == 2) isBack = true;
-	else if (option == 3) exit(0);
-	this->frameworkSelected = option;
-
-	// Get name Framework
-	query = "select name_framework from Framework where id = '" + this->intToString(option) + "';";
-	this->resultDbConfig = this->execQueryReturnData(query.c_str());
-	this->nameFrameworkSelected = this->resultDbConfig[0][0];
-}
-
-/**
- * Select Server
- */
-void ConfigSiteTool::selectServer() {
-	// Get list of server
-	string query = "select id, name_server from Server;";
-    this->resultDbConfig = this->execQueryReturnData(query.c_str());
-
-	bool firstShow = true;
-	int option;
-	do{
-		if (firstShow) {
-			for(vector< vector<string> >::iterator row = this->resultDbConfig.begin(); row != this->resultDbConfig.end(); ++row) {
-				int i = 0;
-				for(vector<string>::iterator col = row->begin(); col != row->end(); ++col) {
-					cout << *col;
-					if ( i == 0) {
-						cout << " - ";
-						++i;
-					}
-				}
-				cout << endl;
-			}
-			cout << "3 - Exit" << endl;
-			cout << "Introduz a opcao: ";
-
-			firstShow = false;
-		}
-
-		// Espera pela opção escolhida pelo utilizador
-		option = this->getOlyInteger("\nInsert valid option: ");
-		
-		// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
-		if(option < 1 || option > 3){
-			cout << "\nInsert valid option only!!!"<<endl;
-			cout<<"Insert an option: ";
-		}
-	}while (option < 1 || option > 3);
-
-	if (option == 3) exit(0);
-	this->serverSelected = option;
-
-	// Get name Server
-	query = "select name_server from Server where id = '" + this->intToString(option) + "';";
-	this->resultDbConfig = this->execQueryReturnData(query.c_str());
-	this->nameServerSelected = this->resultDbConfig[0][0];
 }
 
 /**
@@ -376,63 +483,117 @@ void ConfigSiteTool::selectServer() {
  */
 void ConfigSiteTool::initExecution() {
 	// Definições das vairiáveis
-	bool showMenu = true, firstRun=true, isBack = false;
-	int  opcao = -1;
+	bool firstRun=true;
+	int  option;
 
 	while(1) {
-		do{
-			// Se o menu não foi imprimido, então faz o print do mesmo
-	    	if (showMenu) {
-				if (opcao == -1) {
-					this->selectServer();
-					cout << endl;
-					this->selectFramework(isBack);
-					this->executeCommands("clear");
-				}
-				if (!isBack) {
-					if (!firstRun){
-						cout << "\n\n\n### Operation finished! ###\n" << endl;
-					}
+		if (firstRun) {
+			// Select Server
+			option = this->selectServer();
+			if (option == _EXITCODE) break;
 
-					cout << "Server Selected: " << this->nameServerSelected << endl;
-					cout << "Framweork Selected: " << this->nameFrameworkSelected << endl;
-					this->printMenu();
-				}			
-	    		showMenu = false;
-	    	}
-
-			if (!isBack) {
-				// Espera pela opção escolhida pelo utilizador
-	      		opcao = this->getOlyInteger("\nInsert valid option: ");
-			} else {
-				opcao = 8;
-				isBack = false;
+			// Select Framework
+			option = this->selectFramework();
+			if (option == _EXITCODE) break;
+			else if (option == _RETURNCODE) {
+				firstRun = true;
+				this->executeCommands("clear");
+				continue;
 			}
-	      	
-	      	// Apresenta uma mensagem se o utilizador não introduzir uma opção correcta
-	      	if(opcao < 1 || opcao > 9){
-				cout << "\nInsert valid option only!!!"<<endl;
-	  			cout<<"Insert an option: ";
-	      	}
-		}while (opcao < 1 || opcao > 9);
+			this->executeCommands("clear");
+		} else {
+			cout << "\n\n#### OPERATION FINISHED ####\n\n";
+		}
 
-		// Exit
-		if (opcao == 9) {
+		// Select Operation
+		option = this->selectOperation();
+		if (option == _EXITCODE) break;
+		else if (option == _RETURNCODE) {
+			firstRun = true;
+			this->executeCommands("clear");
+			continue;
+		} else {
+			// Execute option selected
+			if (!this->executeOptionSelected(option)) {
+				this->executeAllNecessaryCommand(option);
+			}
+
+			// Set is not first run
+			firstRun = false;
+		}
+	}
+}
+
+/*********************************************************************************************
+ * CLI
+ ********************************************************************************************/
+
+/**
+ * HELP
+ */
+void ConfigSiteTool::helpCLI(string executable) {
+	cout << "#### HELP ####" << endl;
+	cout << executable << " (-e|-iP) ARGS\n" << endl;
+	cout << "\t -e: Execute the app\n";
+	cout << "\t -iP: Insert existing and active project\n";
+	cout << "\t\t ARGS: \"Name\" Port \"Path\"\n";
+}
+
+/**
+ * Insert Project
+ */
+void ConfigSiteTool::insertProjectCLI(int argc, string *argv) {
+	this->nomeProjecto = argv[2];
+	this->porto = this->stringToInt(argv[3]);
+
+	if (argc < 5) {
+		this->pathWWW = PATHWWW;
+	} else {
+		this->pathWWW = (argv[4].length() == 0) ? PATHWWW : argv[4];
+	}
+
+	// Select Server and Framework
+	while(1) {
+		// Select Server
+		if (this->selectServer() == _EXITCODE) break;
+
+		// Select Framework
+		if (this->selectFramework() == _EXITCODE) break;
+		else if (this->selectFramework() == _RETURNCODE) {
+			this->executeCommands("clear");
+			continue;
+		} else {
 			break;
 		}
+	}
 
-		if (opcao != 8) {
-			// Execute option selected
-        	this->executeOptionSelected(opcao);
-			firstRun = false;
-			opcao = 0;
+	// Save New Info
+	this->saveDeleteInfo(false);
+
+	cout << "Operation Finished\n";
+}
+
+/**
+ * Execute based on input
+ */
+void ConfigSiteTool::readInputAndSelectCLI(int argc, string *argv) {
+	string firstArg[] = {"-e", "-iP", "-h"};
+
+	if (argc > 1) {
+		if (firstArg[0].compare(argv[1]) == 0) {
+			this->initExecution();
+		} else if (firstArg[1].compare(argv[1]) == 0) {
+			if (argc >= 4) {
+				this->insertProjectCLI(argc, argv);
+			} else {
+				cout << "\nMinimum Argument acepted: 2\n\n";
+			}
+		} else if (firstArg[2].compare(argv[1]) == 0) {
+			this->helpCLI(argv[0]);
 		} else {
-			this->executeCommands("clear");
-			firstRun = true;
-			opcao = -1;
+			cout << "\nInvalid Argument\n\n";
 		}
-
-	  	// Change config for variable
-	  	showMenu = true;
+	} else {
+		cout << "\nInvalid Argument\n\n";
 	}
 }

@@ -5,16 +5,19 @@
 #include "../lib/AllApache.h"
 
 AllApache::AllApache() {
-    this->enableSiteCmd = "a2ensite";
-    this->disableSiteCmd = "a2dissite";
+    this->enableSiteApacheCmd = "a2ensite";
+    this->disableSiteApacheCmd = "a2dissite";
     this->restartApacheCmd = "service apache2 restart";
     this->reloadApacheCmd = "service apache2 reload";
-    this->apachePath = "/etc/apache2/";
-    this->apachePort = this->apachePath + "ports.conf";
-    this->apacheSitesAvailable = this->apachePath + "sites-available/";
-    this->apacheVirtualConfTemplate = APPFOLDER + "virtualConfApacheTemplate.conf";
-    this->extensionVirtualConf = ".conf";
+
+    this->pathApache = "/etc/apache2/";
+    this->portConfFileApache = this->pathApache + "ports.conf";
+    this->sitesAvailablePathApache = this->pathApache + "sites-available/";
+    this->virtualConfTemplateApache = APPFOLDER + "virtualConfApacheTemplate.conf";
     this->groupApache = this->getGroupApache();
+    this->nameOnDBApache = "Apache2";
+
+    this->extensionVirtualConfApache = ".conf";
 
     // Insert Default value on data base
     this->insertApacheInfoDB();
@@ -24,19 +27,51 @@ AllApache::AllApache() {
 
 AllApache::~AllApache() {}
 
+/*********************************************************************************************
+ * DATA BASE METHODS
+ ********************************************************************************************/
 /**
  * Insert default value on Data Base
  */
 void AllApache::insertApacheInfoDB() {
-    string name = "Apache2";
-    string query = "INSERT INTO Server(name_server,virtual_conf) "
-        "SELECT '" + name + "','" + this->apacheVirtualConfTemplate + "' "
-        "WHERE NOT EXISTS(SELECT 1 FROM Server WHERE name_server = '" + name + "');";
+    string query = "INSERT INTO Server(name) "
+        "SELECT '" + this->nameOnDBApache + "' "
+        "WHERE NOT EXISTS(SELECT 1 FROM Server WHERE name = '" + this->nameOnDBApache + "');";
     
     // Save on Data Base
     this->classAllDataBase.execQuery(query.c_str());
 }
 
+/**
+ * Get Project Info
+ */
+bool AllApache::getInfoProjectDBApache(string nameProject) {
+    // string nameProject, string path, int port, int oldPort
+    string query = 
+        "SELECT ConfigSite.name, ConfigSite.port, ConfigSite.directory "
+		"FROM ConfigSite "
+        "INNER JOIN Server ON ConfigSite.server_id = Server.id "
+		"WHERE ConfigSite.name = '" + nameProject + "' "
+        "AND Server.name = '" + this->nameOnDBApache + "';";
+    
+    // Execute Query
+	this->resultDbApache = this->classAllDataBase.execQueryReturnData(query.c_str());
+
+    // Get Data
+	if (this->resultDbApache.empty()) {
+		cout << "Not exist " + this->nameProjectApache + " on data base" << endl;
+		return false;
+	} else {
+		this->nameProjectApache = this->resultDbApache[0][0];
+        this->portProjectApache = this->resultDbApache[0][1];
+		this->pathProjectApache = this->resultDbApache[0][2];
+		return true;
+	}
+}
+
+/*********************************************************************************************
+ * GET AND SET GROUP/PERMISSION
+ ********************************************************************************************/
 /**
  * Return Group of Apache2
  */
@@ -59,11 +94,21 @@ void AllApache::setGroupApache(string fullPath) {
     // Execute command
     this->classAllOperationGlobal.executeCommands(command);
 
-    // Set All Permission
-    command = "chmod -R 775 " + fullPath;
-    this->classAllOperationGlobal.executeCommands(command);
+    // Set Permission
+    this->setPermissionApache(fullPath);
 }
 
+/**
+ * Set Permission for group Apache
+ */
+void AllApache::setPermissionApache(string fullPath) {
+    // Set All Permission
+    this->classAllOperationGlobal.setPermission(fullPath, "775");
+}
+
+/*********************************************************************************************
+ * SET/UNSET AND CHECK PORT AND PATH
+ ********************************************************************************************/
 /**
  * Check if Port is defined on port.conf
  */
@@ -74,7 +119,7 @@ bool AllApache::checkPortsUsedApache(string port) {
 
 	// Construct command
 	command = " -w \"" + port + "\"";
-    command = this->apachePort + " | " + this->classAllOperationGlobal.getCommandGrep(command);
+    command = this->portConfFileApache + " | " + this->classAllOperationGlobal.getCommandGrep(command);
     command = this->classAllOperationGlobal.getCommandCat(command);
 
 	// Exec and get output command
@@ -102,16 +147,195 @@ bool AllApache::checkPortsUsedApache(string port) {
 	return portIsUsed;
 }
 
+/**
+ * Set Port for apache
+ */
+void AllApache::setPortApache(string port, string nameProject) {
+    string command = "-i 's/" + PORTOIDENTIFY + "/" + port + "/' ";
+
+    // Get sed command
+    command = this->classAllOperationGlobal.getCommandSed(command);
+
+    // Get sudo command
+    command = this->classAllOperationGlobal.getCommandSudo(command);
+
+    /* Create command to insert port virtual conf file
+     * sudo sed -i 's/PORTO/porto/' /etc/apache2/sites-available/nomeProjecto.conf
+     */
+    command += this->sitesAvailablePathApache + nameProject + this->extensionVirtualConfApache;
+
+    // if port is not defined, set the port
+	if (!this->checkPortsUsedApache(port)) {
+        // Construct command
+        // Ports conf : sudo sed -i "/Listen 80/a\\Listen PORTOPROJECTO" ports.conf
+        string commandPortConf = "-i \"/Listen 80/a\\\\Listen " + port + "\" ";
+        commandPortConf = this->classAllOperationGlobal.getCommandSed(commandPortConf);
+        commandPortConf = this->classAllOperationGlobal.getCommandSudo(commandPortConf);
+        commandPortConf += this->portConfFileApache;
+        command += " && " + commandPortConf;
+	}
+
+    // Execute command to insert port on virtual conf file
+    this->classAllOperationGlobal.executeCommands(command);
+}
+
+/**
+ * Unset Port, Remove port from port.conf
+ */
+void AllApache::unsetPortApache(string port) {
+    string command = "-i '/Listen " + port + "/d'" + " " + this->portConfFileApache;
+    command = this->classAllOperationGlobal.getCommandSed(command);
+    command = this->classAllOperationGlobal.getCommandSudo(command);
+
+    // Execute command
+    this->classAllOperationGlobal.executeCommands(command);
+}
+
+/**
+ * Set Path for apache on virtual conf
+ */
+void AllApache::setPathApache(string path, string nameProject) {
+    string webrootFolder = "webroot/";
+    string command = "-i \"s#" +  PATHIDENTIFY + "#" + path + "/" + nameProject;
+    command += "/" + webrootFolder + "#\" ";
+    
+    // Virtual Conf Pasta do Projecto(Comando a executar)
+    // sudo sed -i 's/FULL_PATH_PROJECT/nomeProjecto/' /etc/apache2/sites-available/nomeProjecto.conf
+	command = this->classAllOperationGlobal.getCommandSed(command);
+    command = this->classAllOperationGlobal.getCommandSudo(command);
+    command += this->sitesAvailablePathApache + nameProject + this->extensionVirtualConfApache;
+
+    // Execute command to insert port on virtual conf file
+    this->classAllOperationGlobal.executeCommands(command);
+}
+
+/*********************************************************************************************
+ * COPY/DELETE AND CHECK VIRTUAL CONF
+ ********************************************************************************************/
+/**
+ * Check if virtual conf exist
+ */
 bool AllApache::checkVirtualConfExistApache(string nameProject) {
     string command, output;
 
-    command = "ls " + this->apacheSitesAvailable;
-    command += " | grep \"" + nameProject + this->extensionVirtualConf + "\"";
+    command = "ls " + this->sitesAvailablePathApache;
+    command += " | grep \"" + nameProject + this->extensionVirtualConfApache + "\"";
 
     // Execute command
     output = this->classAllOperationGlobal.executeCommandsWithOutput(command.c_str());
 
     return (output.length() > 0 && output != "\n") ? true : false; 
+}
+
+/**
+ * Copy virtual conf for apache
+ */
+void AllApache::copyVirtualConfApache(string nameProject) {
+    string command = this->classAllOperationGlobal.getCommandCopy(this->virtualConfTemplateApache);
+    command = this->classAllOperationGlobal.getCommandSudo(command);
+    command += " " + this->sitesAvailablePathApache + nameProject + this->extensionVirtualConfApache;
+
+    // Execute Command
+    this->classAllOperationGlobal.executeCommands(command);
+}
+
+/**
+ * Delete Virtual conf file
+ */
+void AllApache::deleteVirtualConfFileApache(string nameProject) {
+    string command = this->sitesAvailablePathApache + nameProject + this->extensionVirtualConfApache;
+    command = this->classAllOperationGlobal.getCommandDel(command);
+    command = this->classAllOperationGlobal.getCommandSudo(command);
+
+    // Execute command
+    this->classAllOperationGlobal.executeCommands(command);
+}
+
+/*********************************************************************************************
+ * ENABLE AND DISABLE SITE
+ ********************************************************************************************/
+/**
+ * Enable Site
+ */
+void AllApache::enableSiteApache() {
+    cout << "\n\nEnable Site...\n";
+
+    // Copy virtual conf file
+    this->copyVirtualConfApache(this->nameProjectApache);
+
+	// Set Port
+	this->setPortApache(this->portProjectApache, this->nameProjectApache);
+
+	// Set Path
+	this->setPathApache(this->pathProjectApache, this->nameProjectApache);
+
+    // Set Group apache
+    this->setGroupApache(this->getFullPath());
+
+    // Enable Site Command
+    string command = this->enableSiteApacheCmd + " " + this->nameProjectApache + this->extensionVirtualConfApache;
+    command = this->classAllOperationGlobal.getCommandSudo(command);
+    
+    // Execute command
+    this->classAllOperationGlobal.executeCommands(command);
+
+    // Reload and Restart Apache
+    this->reloadRestartApache(-1);
+}
+
+/**
+ * Disable Site
+ */
+void AllApache::disableSiteApache() {
+    cout << "\n\nDisable Site...\n";
+
+	// Remove Port
+	this->unsetPortApache(this->portProjectApache);
+
+	// Remove Virtual Conf File
+	this->deleteVirtualConfFileApache(this->nameProjectApache);
+
+    // Disable Site Command
+    string command = this->disableSiteApacheCmd + " " + this->nameProjectApache + this->extensionVirtualConfApache;
+    command = this->classAllOperationGlobal.getCommandSudo(command);
+    
+    // Execute command : sudo a2dissite nome_projecto.conf
+    this->classAllOperationGlobal.executeCommands(command);
+
+    // Reload and Restart Apache
+    this->reloadRestartApache(-1);
+}
+
+/*********************************************************************************************
+ * OTHER METHODS
+ ********************************************************************************************/
+string AllApache::getFullPath() {
+    return "\"" + this->pathProjectApache + "/" + this->nameProjectApache + "\"";
+}
+
+/*********************************************************************************************
+ * CONFIG/RESTART/RELOAD APACHE
+ ********************************************************************************************/
+/**
+ * Config Project on Apache
+ */
+void AllApache::configApache(string operation, string nameProject, string oldPort) {
+    if (this->getInfoProjectDBApache(nameProject)) {
+        if (operation.compare("enable") == 0) this->enableSiteApache();
+        else if (operation.compare("disable") == 0) this->disableSiteApache();
+        else if (operation.compare("changePort") == 0) {
+            // Save new Port
+            string newPort = this->portProjectApache;
+
+            // Disable Site
+            this->portProjectApache = oldPort;
+            this->disableSiteApache();
+
+            // Restore new port and enable
+            this->portProjectApache = newPort;
+            this->enableSiteApache();
+        }
+    }
 }
 
 /**
@@ -133,157 +357,4 @@ void AllApache::reloadRestartApache(int option) {
 
     // Execute command
     this->classAllOperationGlobal.executeCommands(command);
-}
-
-/**
- * Delete Virtual conf file
- */
-void AllApache::deleteVirtualConfFileApache(string nameProject) {
-    string command = this->apacheSitesAvailable + nameProject + this->extensionVirtualConf;
-    command = this->classAllOperationGlobal.getCommandDel(command);
-    command = this->classAllOperationGlobal.getCommandSudo(command);
-
-    // Execute command
-    this->classAllOperationGlobal.executeCommands(command);
-}
-
-/**
- * Unset Port, Remove port from port.conf
- */
-void AllApache::unsetPortApache(string port) {
-    string command = "-i '/Listen " + port + "/d'" + " " + this->apachePort;
-    command = this->classAllOperationGlobal.getCommandSed(command);
-    command = this->classAllOperationGlobal.getCommandSudo(command);
-
-    // Execute command
-    this->classAllOperationGlobal.executeCommands(command);
-}
-
-/**
- * Enable Site
- */
-void AllApache::enableSiteApache(string nameProject) {
-    string command = this->enableSiteCmd + " " + nameProject + this->extensionVirtualConf;
-    command = this->classAllOperationGlobal.getCommandSudo(command);
-    
-    // Execute command
-    this->classAllOperationGlobal.executeCommands(command);
-
-    // Reload and Restart Apache
-    this->reloadRestartApache(-1);
-}
-
-/**
- * Set Path for apache
- */
-void AllApache::setPathApache(string path, string nameProject) {
-    string webrootFolder = "webroot/";
-    string command = "-i \"s#" +  PATHIDENTIFY + "#" + path + "/" + nameProject;
-    command += "/" + webrootFolder + "#\" ";
-    
-    // Virtual Conf Pasta do Projecto(Comando a executar)
-    // sudo sed -i 's/FULL_PATH_PROJECT/nomeProjecto/' /etc/apache2/sites-available/nomeProjecto.conf
-	command = this->classAllOperationGlobal.getCommandSed(command);
-    command = this->classAllOperationGlobal.getCommandSudo(command);
-    command += this->apacheSitesAvailable + nameProject + this->extensionVirtualConf;
-
-    // Execute command to insert port on virtual conf file
-    this->classAllOperationGlobal.executeCommands(command);
-}
-
-/**
- * Set Port for apache
- */
-void AllApache::setPortApache(string port, string nameProject) {
-    string command = "-i 's/" + PORTOIDENTIFY + "/" + port + "/' ";
-
-    // Get sed command
-    command = this->classAllOperationGlobal.getCommandSed(command);
-
-    // Get sudo command
-    command = this->classAllOperationGlobal.getCommandSudo(command);
-
-    /* Create command to insert port virtual conf file
-     * sudo sed -i 's/PORTO/porto/' /etc/apache2/sites-available/nomeProjecto.conf
-     */
-    command += this->apacheSitesAvailable + nameProject + this->extensionVirtualConf;
-
-    // if port is not defined, set the port
-	if (!this->checkPortsUsedApache(port)) {
-        // Construct command
-        // Ports conf : sudo sed -i "/Listen 80/a\\Listen PORTOPROJECTO" ports.conf
-        string commandPortConf = "-i \"/Listen 80/a\\\\Listen " + port + "\" ";
-        commandPortConf = this->classAllOperationGlobal.getCommandSed(commandPortConf);
-        commandPortConf = this->classAllOperationGlobal.getCommandSudo(commandPortConf);
-        commandPortConf += this->apachePort;
-        command += " && " + commandPortConf;
-	}
-
-    // Execute command to insert port on virtual conf file
-    this->classAllOperationGlobal.executeCommands(command);
-}
-
-/**
- * Copy virtual conf for apache
- */
-void AllApache::copyVirtualConfApache(string nameProject) {
-    string command = this->classAllOperationGlobal.getCommandCopy(this->apacheVirtualConfTemplate);
-    command = this->classAllOperationGlobal.getCommandSudo(command);
-    command += " " + this->apacheSitesAvailable + nameProject + this->extensionVirtualConf;
-    cout << command << endl;
-
-    // Execute Command
-    this->classAllOperationGlobal.executeCommands(command);
-}
-
-/**
- * Disable Site
- */
-void AllApache::disableSiteApache(string nameProject, int port) {
-    string portString;
-
-	// Remove Port
-	portString = this->classAllOperationGlobal.intToString(port);
-	this->unsetPortApache(portString);
-
-	// Remove Virtual Conf File
-	this->deleteVirtualConfFileApache(nameProject);
-
-    string command = this->disableSiteCmd + " " + nameProject + this->extensionVirtualConf;
-    command = this->classAllOperationGlobal.getCommandSudo(command);
-    
-    // Execute command : sudo a2dissite nome_projecto.conf
-    this->classAllOperationGlobal.executeCommands(command);
-
-    // Reload and Restart Apache
-    this->reloadRestartApache(-1);
-}
-
-/**
- * Config Project on Apache
- */
-void AllApache::configApache(string nameProject, string path, int port, int oldPort, bool isChangePort) {
-    string portoString, fullPath;
-
-    // Disable Site and unset port
-	if (isChangePort){
-		this->disableSiteApache(nameProject, oldPort);
-	}
-
-    // Copy virtual conf file
-    this->copyVirtualConfApache(nameProject);
-
-	// Set Port
-    portoString = this->classAllOperationGlobal.intToString(port);
-	this->setPortApache(portoString, nameProject);
-
-	// Set Path
-	this->setPathApache(path, nameProject);
-
-    // Set Group apache
-    fullPath = "\"" + path + "/" + nameProject + "\"";
-    this->setGroupApache(fullPath);
-
-	// Activa o site sudo a2ensite nome_projecto.conf
-	this->enableSiteApache(nameProject);
 }

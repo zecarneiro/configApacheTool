@@ -11,41 +11,69 @@
 #include "../lib/AllCakePHP.h"
 #include "../lib/AllDataBase.h"
 
+/**
+ * EXIT AND RETURN CODE
+ * EXIT = -2
+ * RETURN = -1
+ */
+#define _EXITCODE -2
+#define _RETURNCODE -1
+
 /* Definition to project */
 class ConfigSiteTool: public AllDataBase, public AllOperationGlobal, private AllApache, public AllCakePHP {
-    private:
-        string createConfigFolderCmd;
-        int serverSelected;
-        int frameworkSelected;
-        int portSelected;
-        string nameServerSelected;
-        string nameFrameworkSelected;
+    protected:
+        int serverSelected, frameworkSelected, portSelected;
+        string nameServerSelected, nameFrameworkSelected;
         vector<vector<string>> resultDbConfig;
+
+        // Project Info
+        string nomeProjecto, oldPorto, porto, pathWWW;
+
+        /*********************************************************************************************
+         * DATA BASE METHODS
+         ********************************************************************************************/
+        void saveDeleteInfo(bool);
+        bool getInfoProjectDB();
+        void setOperationDB(int);
+        void printActiveProject();
+
+        /*********************************************************************************************
+         * CONFIG SERVER AND FRAMEWORK
+         ********************************************************************************************/
+        void configServer(string);
+        void configFramework(string);
         
     public:
-        string nomeProjecto;
-	    int porto;
-	    int oldPorto;
-	    string pathWWW;
-
-        /* Methods */
         ConfigSiteTool();
         ~ConfigSiteTool();
 
-        void initExecution();
-        void selectServer();
-        void selectFramework(bool &);
-        void printMenu();
-        void executeOptionSelected(int);
+        /*********************************************************************************************
+         * CLI
+         ********************************************************************************************/
+        void helpCLI(string);
+        void insertProjectCLI(int, string *);
+        void readInputAndSelectCLI(int, string *);
+
+        /*********************************************************************************************
+         * PRINT MENU AND SELECT SERVER, FRAMEWORK AND OTHER OPERATION
+         ********************************************************************************************/
+        int selectServer();
+        int selectFramework();
+        int selectOperation();
+
+        /*********************************************************************************************
+         * GET PROJECT INFO
+         ********************************************************************************************/
+        bool getNameProject();
         void getPathProject();
         bool getPortProject(bool);
-        bool getNameProject();
-        void setOperationDB(int);
+        bool executeOptionSelected(int);
+
+        /*********************************************************************************************
+         * OTHER
+         ********************************************************************************************/
+        void initExecution();
         void executeAllNecessaryCommand(int);
-        bool getInfoProjectDB();
-        void configServer(bool, bool);
-        void saveDeleteInfo(bool);
-        void insertProjectCLI(int, char *[]);
 };
 
 #endif // CONFIGSITETOOL_H

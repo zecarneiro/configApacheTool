@@ -25,8 +25,12 @@ const string PORTOIDENTIFY = "PORTO";
 const string PATHIDENTIFY = "FULL_PATH_PROJECT";
 const string PATHWWW = "PATH_WWW";
 const string LEVELPERMISSION = "777";
-const string INFOPROJECTAPACHE = "infoProjectApache.sh";
 const string FUNCTIONSHELL = APPFOLDER + "src/functions.sh";
 const string CONFIGFOLDER = "HOME_DIR/.config/configSite";
+
+/**
+ * Include all methods
+ */
+void createConfigFolder();
 
 #endif // INCLUDE_H

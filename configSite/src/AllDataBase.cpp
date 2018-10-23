@@ -9,7 +9,6 @@
  * Constructor
  */
 AllDataBase::AllDataBase() {
-    //this->dataBase = NULL;
 	this->nameFileDataBase = "configSiteTool.db";
     this->pathDataBase = CONFIGFOLDER;
     this->fileDataBase = this->pathDataBase + "/" + this->nameFileDataBase;
@@ -23,6 +22,9 @@ AllDataBase::AllDataBase() {
  */
 AllDataBase::~AllDataBase() {}
 
+/**
+ * Print and Save Error
+ */
 void AllDataBase::savePrintError() {
     string error = sqlite3_errmsg(this->dataBase);
     error = "Can't open database: " + error;
@@ -55,6 +57,9 @@ void AllDataBase::closeDataBase() {
     sqlite3_close(this->dataBase);
 }
 
+/**
+ * Execute Query Only
+ */
 void AllDataBase::execQuery(const char* query) {
     this->openDataBase();
     int rc = sqlite3_exec(this->dataBase, query, NULL, NULL, NULL);
@@ -64,6 +69,9 @@ void AllDataBase::execQuery(const char* query) {
     this->closeDataBase();
 }
 
+/**
+ * Execute Query And Return Data
+ */
 vector<vector<string> > AllDataBase::execQueryReturnData(const char* query) {
     this->openDataBase();
     sqlite3_stmt *statement;
@@ -110,29 +118,28 @@ void AllDataBase::createDataBase(){
         // Create Data Base Server
         string queryServer = "CREATE TABLE IF NOT EXISTS Server("
             "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
-            "name_server VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
-            "virtual_conf VARCHAR(" + to_string(this->lengthPath) + ") NOT NULL,"
-            "UNIQUE (name_server COLLATE NOCASE))"; // COLLATE NOCASE : case insensitive
+            "name VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
+            "UNIQUE (name COLLATE NOCASE))"; // COLLATE NOCASE : case insensitive
         query = queryServer.c_str();
         this->execQuery(query);
 
         // Create Data Base Framework
         string queryFramework = "CREATE TABLE IF NOT EXISTS Framework("
             "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
-            "name_framework VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
-            "UNIQUE (name_framework COLLATE NOCASE))"; // COLLATE NOCASE : case insensitive
+            "name VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
+            "UNIQUE (name COLLATE NOCASE))"; // COLLATE NOCASE : case insensitive
         query = queryFramework.c_str();
         this->execQuery(query);
 
         // Create Data Base config site tool
         string queryCreateConfigSite = "CREATE TABLE IF NOT EXISTS ConfigSite("
             "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,"
-            "name_project VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
+            "name VARCHAR(" + to_string(this->lengthName) + ") NOT NULL,"
             "port INTEGER UNIQUE,"
             "directory VARCHAR(" + to_string(this->lengthPath) + "),"
             "framework_id INTEGER NOT NULL,"
             "server_id INTEGER NOT NULL,"
-            "UNIQUE (name_project COLLATE NOCASE)," // COLLATE NOCASE : case insensitive
+            "UNIQUE (name COLLATE NOCASE)," // COLLATE NOCASE : case insensitive
             "FOREIGN KEY(framework_id) REFERENCES Framework(id),"
             "FOREIGN KEY(server_id) REFERENCES Server(id))";
         query = queryCreateConfigSite.c_str();

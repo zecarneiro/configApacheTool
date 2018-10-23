@@ -12,6 +12,8 @@ AllCakePHP::AllCakePHP() {
     this->updateProjectCmd = "composer update -d";
     this->configProjectCmd = "composer install -d";
 
+    this->nameOnDBCakePHP = "CakePHP";
+
     // Insert Default value on data base
     this->insertCakePHPInfoDB();
 }
@@ -25,20 +27,25 @@ AllCakePHP::~AllCakePHP() {}
  * Insert default value on Data Base
  */
 void AllCakePHP::insertCakePHPInfoDB() {
-    string name = "CakePHP";
-    string query = "INSERT INTO Framework(name_framework) "
-        "SELECT '" + name + "' "
-        "WHERE NOT EXISTS(SELECT 1 FROM Framework WHERE name_framework = '" + name + "');";
+    string query = "INSERT INTO Framework(name) "
+        "SELECT '" + this->nameOnDBCakePHP + "' "
+        "WHERE NOT EXISTS(SELECT 1 FROM Framework WHERE name = '" + this->nameOnDBCakePHP + "');";
     
     // Save on Data Base
     this->classAllDataBase.execQuery(query.c_str());
 }
 
+/**
+ * Set Permission on Logs and Tmp directory
+ */
 void AllCakePHP::setPermissionCakePHP(string path, string nameProject) {
     string fullPathLogs = "\"" + path + "/" + nameProject + "/logs" + "\"";
     string fullPathTmp = "\"" + path + "/" + nameProject + "/tmp" + "\"";
-    string logsCmd = "mkdir -p " + fullPathLogs;
-    string tmpCmd = "mkdir -p " + fullPathTmp;
+    string logsCmd = "sudo mkdir -p " + fullPathLogs;
+    string tmpCmd = "sudo mkdir -p " + fullPathTmp;
+
+    // Print Info
+    cout << "\nSet Permission on Logs and Tmp directory...\n";
 
     // Create logs em tmp dir if not exist
     this->classAllOperationGlobal.executeCommands(logsCmd);
@@ -56,6 +63,9 @@ void AllCakePHP::newProjectCakePHP(string path, string nameProject) {
     string fullPath = "\"" + path + "/" + nameProject + "\"";
     string command = this->newProjectCmd + " " + fullPath;
 
+    // Print Info
+    cout << "\nCreate project on CakePHP with name: " << nameProject << endl;
+
     // Execute
     this->classAllOperationGlobal.executeCommands(command);
 
@@ -69,6 +79,9 @@ void AllCakePHP::newProjectCakePHP(string path, string nameProject) {
 void AllCakePHP::configProjectCakePHP(string path, string nameProject) {
     string fullPath = "\"" + path + "/" + nameProject + "\"";
     string command = this->configProjectCmd + " " + path;
+
+    // Print Info
+    cout << "\nConfig project on CakePHP with name: " << nameProject << endl;
 
     // Execute
     this->classAllOperationGlobal.executeCommands(command);
@@ -84,6 +97,9 @@ void AllCakePHP::updateProjectCakePHP(string path, string nameProject) {
     string fullPath = "\"" + path + "/" + nameProject + "\"";
     string command = this->updateProjectCmd + " " + fullPath;
 
+    // Print Info
+    cout << "\nUpdate project on CakePHP with name: " << nameProject << endl;
+
     // Execute
     this->classAllOperationGlobal.executeCommands(command);
 
@@ -91,21 +107,26 @@ void AllCakePHP::updateProjectCakePHP(string path, string nameProject) {
     this->setPermissionCakePHP(path, nameProject);
 }
 
+/**
+ * Print All Project
+ */
 void AllCakePHP::printActiveProjectCakePHP() {
-    string query = "select ConfigSite.name_project, ConfigSite.port, ConfigSite.directory, Server.name_server "
-		"from ConfigSite "
-        "inner join Server on ConfigSite.server_id = Server.id "
-        "inner join Framework on ConfigSite.framework_id = Framework.id "
-        "where Framework.name_framework = 'CakePHP';";
-	this->resultDbConfig = this->classAllDataBase.execQueryReturnData(query.c_str());
+    string query = "SELECT ConfigSite.name, ConfigSite.port, ConfigSite.directory, Server.name "
+		"FROM ConfigSite "
+        "INNER JOIN Server on ConfigSite.server_id = Server.id "
+        "INNER JOIN Framework on ConfigSite.framework_id = Framework.id "
+        "WHERE Framework.name = '" + this->nameOnDBCakePHP + "';";
+
+    // Execute Query
+	this->resultDbCakePHP = this->classAllDataBase.execQueryReturnData(query.c_str());
 
     cout << endl;
 
-    if (this->resultDbConfig.empty()) {
+    if (this->resultDbCakePHP.empty()) {
         cout << "Empty List..." << endl;
     } else {
         cout << "\nList of project on CakePHP" << endl << endl;
-        for(vector< vector<string> >::iterator row = this->resultDbConfig.begin(); row != this->resultDbConfig.end(); ++row) {
+        for(vector< vector<string> >::iterator row = this->resultDbCakePHP.begin(); row != this->resultDbCakePHP.end(); ++row) {
             int index = 1, colIndex = 0;
             for(vector<string>::iterator col = row->begin(); col != row->end(); ++col) {
                 switch (colIndex) {
@@ -128,5 +149,20 @@ void AllCakePHP::printActiveProjectCakePHP() {
             ++index;
             cout << endl;
         }
+    }
+}
+
+/**
+ * Set operation
+ */
+void AllCakePHP::setOperationCakePHP(string operation, string pathProject, string nameProject) {
+    if (operation.compare("new") == 0) {
+        this->newProjectCakePHP(pathProject, nameProject);
+    } else if (operation.compare("config") == 0) {
+        this->configProjectCakePHP(pathProject, nameProject);
+    } else if (operation.compare("update") == 0) {
+        this->updateProjectCakePHP(pathProject, nameProject);
+    } else {
+        this->printActiveProjectCakePHP();
     }
 }

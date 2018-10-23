@@ -12,17 +12,12 @@
 
 class AllCakePHP {
     private:
-        string newProjectCmd;
-        string updateProjectCmd;
-        string configProjectCmd;
-        vector<vector<string>> resultDbConfig;
+        string newProjectCmd, updateProjectCmd, configProjectCmd;
+        string nameOnDBCakePHP;
+        vector<vector<string>> resultDbCakePHP;
         AllOperationGlobal classAllOperationGlobal;
         AllApache classAllApache;
         AllDataBase classAllDataBase;
-
-    public:
-        AllCakePHP();
-        ~AllCakePHP();
 
         void insertCakePHPInfoDB();
         void setPermissionCakePHP(string, string);
@@ -30,6 +25,11 @@ class AllCakePHP {
         void updateProjectCakePHP(string, string);
         void configProjectCakePHP(string, string);
         void printActiveProjectCakePHP();
+
+    public:
+        AllCakePHP();
+        ~AllCakePHP();
+        void setOperationCakePHP(string, string, string);
 };
 
 #endif // ALLCAKEPHP_H
