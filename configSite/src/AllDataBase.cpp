@@ -37,9 +37,6 @@ void AllDataBase::savePrintError() {
 
     // Close Data Base
     sqlite3_close(this->dataBase);
-
-    // Exit
-    exit(1);
 }
 
 /**

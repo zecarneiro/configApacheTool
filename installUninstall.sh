@@ -18,6 +18,8 @@ declare functionsFile="$appInstalationPath$appPath/src/functions.sh"
 declare executableAPP="$appInstalationPath$appPath/bin/$appPath -e"
 declare iconAPP="$appInstalationPath$appPath/icons/$appPath.png"
 declare compileCommand="make -C $appInstalationPath$appPath/ -f $appInstalationPath$appPath/Makefile"
+declare phpVersion=$(php -v | grep -i php | cut -d ' ' -f2 | cut -d '.' -f1-2 | head -1)
+declare virtualConfNginx="$appInstalationPath$appPath/virtualConfNginxTemplate"
 
 # Print Messages
 function printMessages(){
@@ -71,7 +73,7 @@ function uninstallConfigSite(){
 }
 
 # Set Default path
-function setPath(){
+function setPathAndOther(){
 	local fileToSetDefaultPath="$appInstalationPath$appPath/lib/includes.h"
 
 	echo "Default full path for projects: $pathWWW" 
@@ -90,6 +92,9 @@ function setPath(){
 	sudo sed -i "s#PATH_WWW#$pathWWW#" "$fileToSetDefaultPath"
 	sudo sed -i "s#HOME_DIR#$pathHome#" "$fileToSetDefaultPath"
 	printMessages "Set Path Done..."
+
+	# Set PHP Version
+	sudo sed -i "s#PHPVERSION#php$phpVersion#" $virtualConfNginx
 }
 
 # Instalation of servers
@@ -104,7 +109,7 @@ function installServer(){
 function installPhp(){
 	local allPhpApp="snmp-mibs-downloader php libapache2-mod-php php-mysql php-intl php-mbstring php-xml php-curl php-gd"
 	allPhpApp="$allPhpApp php-pear php-imagick php-imap php-memcache php-pspell php-recode php-snmp"
-	allPhpApp="$allPhpApp php-tidy php-xmlrpc php-sqlite3"
+	allPhpApp="$allPhpApp php-tidy php-xmlrpc php-sqlite3 php-fpm"
 
 	eval "$functionsFile -i \"$allPhpApp\""
 	printMessages "Instalation of PHP APPs done..."
@@ -208,8 +213,6 @@ function installAppByUser(){
 
 # Config Apache
 function configApache(){
-	local phpVersion=$(php -v | grep -i php | cut -d ' ' -f2 | cut -d '.' -f1-2)
-
 	# Enable mod rewrite
 	sudo a2enmod rewrite
 	sudo service apache2 restart
@@ -253,7 +256,7 @@ function main(){
 		"-i")
 			installConfigSite
 			installOtherApps
-			setPath
+			setPathAndOther
 
 			# Compile
 			eval "$compileCommand"

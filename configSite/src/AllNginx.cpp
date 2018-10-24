@@ -111,20 +111,26 @@ bool AllNginx::checkPortsUsedNginx(string port) {
     command = "nginx | awk '{print $9}' | " + this->classAllOperationGlobal.getCommandCat(command);
     command = "lsof -i -n | " + this->classAllOperationGlobal.getCommandGrep(command);
     command = this->classAllOperationGlobal.getCommandSudo(command);
-    string exist = this->classAllOperationGlobal.executeCommandsWithOutput(command.c_str());
-    exist.erase(remove(exist.begin(), exist.end(), '\n'), exist.end());
+    string result = this->classAllOperationGlobal.executeCommandsWithOutput(command.c_str());
+    result.erase(remove(result.begin(), result.end(), '\n'), result.end());
+    bool portIsUsed = this->classAllOperationGlobal.stringToInt(result) > 0;
 
-    // Check on Data Base
-    string query = 
-        "SELECT COUNT(*) "
-        "FROM ConfigSite "
-        "INNER JOIN Server ON ConfigSite.server_id = Server.id "
-        "WHERE ConfigSite.port = " + port + ";";
+    if (!portIsUsed) {
+        // Check on Data Base
+        string query = 
+            "SELECT COUNT(*) "
+            "FROM ConfigSite "
+            "INNER JOIN Server ON ConfigSite.server_id = Server.id "
+            "WHERE ConfigSite.port = " + port + ";";
 
-    this->resultDbNginx = this->classAllDataBase.execQueryReturnData(query.c_str());
-    
-    if (this->resultDbNginx[0][0].compare("1") == 0 && exist.compare("0") != 0) return true;
-    else return false;
+        this->resultDbNginx = this->classAllDataBase.execQueryReturnData(query.c_str());
+
+        portIsUsed = (this->classAllOperationGlobal.stringToInt(this->resultDbNginx[0][0]) > 0) ?
+            true : false;
+    }
+
+    // Return true = Used or false
+    return portIsUsed;
 }
 
 /**

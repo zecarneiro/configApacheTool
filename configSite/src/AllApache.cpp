@@ -138,7 +138,20 @@ bool AllApache::checkPortsUsedApache(string port) {
 	// Fecha o ficheiro
 	pclose(fp);
 
-	// Retorna o resultado
+    if (!portIsUsed) {
+        // Check on Data Base
+        string query = 
+            "SELECT COUNT(*) "
+            "FROM ConfigSite "
+            "INNER JOIN Server ON ConfigSite.server_id = Server.id "
+            "WHERE ConfigSite.port = " + port + ";";
+        this->resultDbApache = this->classAllDataBase.execQueryReturnData(query.c_str());
+
+        portIsUsed = (this->classAllOperationGlobal.stringToInt(this->resultDbApache[0][0]) > 0) ?
+            true : false;
+    }
+
+	// Return true = Used or false
 	return portIsUsed;
 }
 

@@ -5,18 +5,16 @@ server {
     root FULL_PATH_PROJECT;
     index index.html index.htm index.php index.py index.nginx-debian.html;
 
-    server_name _;
-
     location / {
-            try_files $uri $uri/ =404;
+        try_files $uri $uri/ /index.php?$args;
     }
 
     location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php7.0-fpm.sock;
-    }
-
-    location ~ /\.ht {
-        deny all;
+        try_files $uri =404;
+        include fastcgi_params;
+        fastcgi_pass unix:/var/run/php/PHPVERSION-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_intercept_errors on;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
     }
 }

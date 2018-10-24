@@ -104,7 +104,7 @@ void ConfigSiteTool::setOperationDB(int opcao) {
 			this->saveDeleteInfo(true);
 			break;
 		default:
-			if (opcao != 7 && opcao != 5) this->saveDeleteInfo(false);
+			if (opcao != 8 && opcao != 9 && opcao != 5) this->saveDeleteInfo(false);
 	}
 }
 
@@ -309,16 +309,17 @@ int ConfigSiteTool::selectOperation() {
 
 	// Print Menu
 	cout << "\n Options 1, 2, 3 and 6 also activate project on apache !!!\n\n";
-	cout << "1 - Create new project" << endl;
-	cout << "2 - Config existing project(Run composer install)" << endl;
-	cout << "3 - Change port for an project(For activated project)" << endl;
-	cout << "4 - Disable an existing project(Not delete project folder)" << endl;
-	cout << "5 - Update existing project(Only Run Composer update)" << endl;
-	cout << "6 - Activate project already configured(On Server)" << endl;
-	cout << "7 - Show all active project on " + this->nameFrameworkSelected  << endl;
-	cout << "8 - Show all active project"  << endl;
-	cout << "9 - Back HOME" << endl;
-	cout << "10 - Exit" << endl;
+	cout << "1 - Create new project on " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
+	cout << "2 - Config existing project(Run composer install) on " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
+	cout << "3 - Change port for an project(For activated project) on " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
+	cout << "4 - Disable an existing project(Not delete project folder) on " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
+	cout << "5 - Update existing project(Only Run Composer update) on " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
+	cout << "6 - Activate project already configured(On Server) for " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
+	cout << "7 - Insert already activate project(On Data Base) for " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
+	cout << "8 - Show all active project on " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
+	cout << "9 - Show all active project"  << endl;
+	cout << "10 - Back HOME" << endl;
+	cout << "11 - Exit" << endl;
 	cout << "Insert an option: ";
 
 	do{
@@ -329,10 +330,10 @@ int ConfigSiteTool::selectOperation() {
 			cout << "\nInsert valid option only!!!"<<endl;
 			cout << "Insert an option: ";
 		}
-	}while (option < 1 || option > 10);
+	}while (option < 1 || option > 11);
 
-	if (option == 10) option = _EXITCODE; // EXIT
-	else if (option == 9) option = _RETURNCODE; // RETURN
+	if (option == 11) option = _EXITCODE; // EXIT
+	else if (option == 10) option = _RETURNCODE; // RETURN
 
 	cout << endl;
 
@@ -416,7 +417,7 @@ bool ConfigSiteTool::getPortProject(bool isChange) {
  */
 bool ConfigSiteTool::executeOptionSelected(int option) {
 	bool isCancel = true;
-	if (option == 1 || option == 2 || option == 6) {
+	if (option == 1 || option == 2 || option == 6 || option == 7) {
 		isCancel = this->getNameProject();
 		if (!isCancel) {
 			isCancel = this->getPortProject(false);
@@ -431,7 +432,7 @@ bool ConfigSiteTool::executeOptionSelected(int option) {
 		}
 	} else if (option == 4 || option == 5) {
 		isCancel = this->getNameProject();
-	} else if (option == 7 || option == 8) {
+	} else if (option == 8 || option == 9) {
 		isCancel = false;
 	}
     return isCancel;
@@ -476,12 +477,15 @@ void ConfigSiteTool::executeAllNecessaryCommand(int option) {
 			this->setOperationDB(option);
 			this->configServer("enable");
 			break;
-		case 7: // Show all active project by framework and server
-			this->executeCommands("clear");
+		case 7: // Insert already activate project(On Data Base)
+			this->setOperationDB(option);
+			break;
+		case 8: // Show all active project by framework and server
+			this->executeCommands("clear && clear");
 			this->configFramework("");
 			break;
-		case 8: // Show all active project
-			this->executeCommands("clear");
+		case 9: // Show all active project
+			this->executeCommands("clear && clear");
 			this->printActiveProject();
 			break;
 	}
@@ -506,10 +510,10 @@ void ConfigSiteTool::initExecution() {
 			if (option == _EXITCODE) break;
 			else if (option == _RETURNCODE) {
 				firstRun = true;
-				this->executeCommands("clear");
+				this->executeCommands("clear && clear");
 				continue;
 			}
-			this->executeCommands("clear");
+			this->executeCommands("clear && clear");
 		} else {
 			cout << "\n\n#### OPERATION FINISHED ####\n\n";
 		}
@@ -519,7 +523,7 @@ void ConfigSiteTool::initExecution() {
 		if (option == _EXITCODE) break;
 		else if (option == _RETURNCODE) {
 			firstRun = true;
-			this->executeCommands("clear");
+			this->executeCommands("clear && clear");
 			continue;
 		} else {
 			// Execute option selected
