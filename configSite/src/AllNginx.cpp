@@ -5,19 +5,18 @@
 #include "../lib/AllNginx.h"
 
 AllNginx::AllNginx() {
-    this->enableSiteNginxCmd = "sudo ln -s /etc/nginx/sites-available/example.com /etc/nginx/sites-enabled/";
-    this->restartNginxCmd = "systemctl restart nginx";
+    this->reloadNginxCmd = "service nginx reload";
+    this->restartNginxCmd = "service nginx restart";
 
     this->pathNginx = "/etc/nginx/";
     this->sitesAvailablePathNginx = this->pathNginx + "sites-available/";
+    this->sitesEnablePathNginx = this->pathNginx + "sites-enabled/";
     this->virtualConfTemplateNginx = APPFOLDER + "virtualConfNginxTemplate";
     this->groupNginx = this->getGroupNginx();
     this->nameOnDBNginx = "Nginx";
 
     // Insert Default value on data base
     this->insertNginxInfoDB();
-
-    // ps aux | egrep '([n|N][g|G]inx|[h|H]ttpd)' | awk '{ print $1}' | uniq | tail -1
 }
 
 AllNginx::~AllNginx() {}
@@ -88,9 +87,6 @@ void AllNginx::setGroupNginx(string fullPath) {
 
     // Execute command
     this->classAllOperationGlobal.executeCommands(command);
-
-    // Set Permission
-    this->setPermissionNginx(fullPath);
 }
 
 /**
@@ -115,7 +111,8 @@ bool AllNginx::checkPortsUsedNginx(string port) {
     command = "nginx | awk '{print $9}' | " + this->classAllOperationGlobal.getCommandCat(command);
     command = "lsof -i -n | " + this->classAllOperationGlobal.getCommandGrep(command);
     command = this->classAllOperationGlobal.getCommandSudo(command);
-    string exist = this->classAllOperationGlobal.executeCommandsWithOutput()
+    string exist = this->classAllOperationGlobal.executeCommandsWithOutput(command.c_str());
+    exist.erase(remove(exist.begin(), exist.end(), '\n'), exist.end());
 
     // Check on Data Base
     string query = 
@@ -126,40 +123,8 @@ bool AllNginx::checkPortsUsedNginx(string port) {
 
     this->resultDbNginx = this->classAllDataBase.execQueryReturnData(query.c_str());
     
-    if (this->resultDbNginx[0][0] == '1' && )
-    
-	bool portIsUsed = false;
-	string outputToCompared = "Listen " + port;
-	string output, command;
-
-	// Construct command
-	command = " -w \"" + port + "\"";
-    command = this->portConfFileNginx + " | " + this->classAllOperationGlobal.getCommandGrep(command);
-    command = this->classAllOperationGlobal.getCommandCat(command);
-
-	// Exec and get output command
-	FILE *fp;
-	char outputCommand[1000];
-
-	// Executa o comando e guarda em um ficheiro
-	fp = popen(command.c_str(), "r");
-
-	// Faz a leitura do output do comando
-	while (fgets(outputCommand, sizeof(outputCommand), fp) != NULL) 
-	{
-		output = outputCommand;
-
-		// Comparo o resultado do output com a string esperada.
-		if (output.compare(outputToCompared) || output.compare(outputToCompared + "\n")) {
-			portIsUsed = true;
-			break;
-		}
-	}
-	// Fecha o ficheiro
-	pclose(fp);
-
-	// Retorna o resultado
-	return portIsUsed;
+    if (this->resultDbNginx[0][0].compare("1") == 0 && exist.compare("0") != 0) return true;
+    else return false;
 }
 
 /**
@@ -175,34 +140,11 @@ void AllNginx::setPortNginx(string port, string nameProject) {
     command = this->classAllOperationGlobal.getCommandSudo(command);
 
     /* Create command to insert port virtual conf file
-     * sudo sed -i 's/PORTO/porto/' /etc/Nginx2/sites-available/nomeProjecto.conf
+     * sudo sed -i 's/PORTO/porto/' /etc/nginx/sites-available/nomeProjecto
      */
-    command += this->sitesAvailablePathNginx + nameProject + this->extensionVirtualConfNginx;
-
-    // if port is not defined, set the port
-	if (!this->checkPortsUsedNginx(port)) {
-        // Construct command
-        // Ports conf : sudo sed -i "/Listen 80/a\\Listen PORTOPROJECTO" ports.conf
-        string commandPortConf = "-i \"/Listen 80/a\\\\Listen " + port + "\" ";
-        commandPortConf = this->classAllOperationGlobal.getCommandSed(commandPortConf);
-        commandPortConf = this->classAllOperationGlobal.getCommandSudo(commandPortConf);
-        commandPortConf += this->portConfFileNginx;
-        command += " && " + commandPortConf;
-	}
+    command += this->sitesAvailablePathNginx + nameProject;
 
     // Execute command to insert port on virtual conf file
-    this->classAllOperationGlobal.executeCommands(command);
-}
-
-/**
- * Unset Port, Remove port from port.conf
- */
-void AllNginx::unsetPortNginx(string port) {
-    string command = "-i '/Listen " + port + "/d'" + " " + this->portConfFileNginx;
-    command = this->classAllOperationGlobal.getCommandSed(command);
-    command = this->classAllOperationGlobal.getCommandSudo(command);
-
-    // Execute command
     this->classAllOperationGlobal.executeCommands(command);
 }
 
@@ -215,10 +157,10 @@ void AllNginx::setPathNginx(string path, string nameProject) {
     command += "/" + webrootFolder + "#\" ";
     
     // Virtual Conf Pasta do Projecto(Comando a executar)
-    // sudo sed -i 's/FULL_PATH_PROJECT/nomeProjecto/' /etc/Nginx2/sites-available/nomeProjecto.conf
+    // sudo sed -i 's/FULL_PATH_PROJECT/nomeProjecto/' /etc/nginx/sites-available/nomeProjecto
 	command = this->classAllOperationGlobal.getCommandSed(command);
     command = this->classAllOperationGlobal.getCommandSudo(command);
-    command += this->sitesAvailablePathNginx + nameProject + this->extensionVirtualConfNginx;
+    command += this->sitesAvailablePathNginx + nameProject;
 
     // Execute command to insert port on virtual conf file
     this->classAllOperationGlobal.executeCommands(command);
@@ -234,7 +176,7 @@ bool AllNginx::checkVirtualConfExistNginx(string nameProject) {
     string command, output;
 
     command = "ls " + this->sitesAvailablePathNginx;
-    command += " | grep \"" + nameProject + this->extensionVirtualConfNginx + "\"";
+    command += " | grep \"" + nameProject + "\"";
 
     // Execute command
     output = this->classAllOperationGlobal.executeCommandsWithOutput(command.c_str());
@@ -248,7 +190,7 @@ bool AllNginx::checkVirtualConfExistNginx(string nameProject) {
 void AllNginx::copyVirtualConfNginx(string nameProject) {
     string command = this->classAllOperationGlobal.getCommandCopy(this->virtualConfTemplateNginx);
     command = this->classAllOperationGlobal.getCommandSudo(command);
-    command += " " + this->sitesAvailablePathNginx + nameProject + this->extensionVirtualConfNginx;
+    command += " " + this->sitesAvailablePathNginx + nameProject;
 
     // Execute Command
     this->classAllOperationGlobal.executeCommands(command);
@@ -258,7 +200,7 @@ void AllNginx::copyVirtualConfNginx(string nameProject) {
  * Delete Virtual conf file
  */
 void AllNginx::deleteVirtualConfFileNginx(string nameProject) {
-    string command = this->sitesAvailablePathNginx + nameProject + this->extensionVirtualConfNginx;
+    string command = this->sitesAvailablePathNginx + nameProject;
     command = this->classAllOperationGlobal.getCommandDel(command);
     command = this->classAllOperationGlobal.getCommandSudo(command);
 
@@ -288,7 +230,8 @@ void AllNginx::enableSiteNginx() {
     this->setGroupNginx(this->getFullPath());
 
     // Enable Site Command
-    string command = this->enableSiteNginxCmd + " " + this->nameProjectNginx + this->extensionVirtualConfNginx;
+    // "sudo ln -s /etc/nginx/sites-available/example.com /etc/nginx/sites-enabled/"
+    string command = "ln -s " + this->sitesAvailablePathNginx + this->nameProjectNginx + " " + this->sitesEnablePathNginx;
     command = this->classAllOperationGlobal.getCommandSudo(command);
     
     // Execute command
@@ -304,14 +247,12 @@ void AllNginx::enableSiteNginx() {
 void AllNginx::disableSiteNginx() {
     cout << "\n\nDisable Site...\n";
 
-	// Remove Port
-	this->unsetPortNginx(this->portProjectNginx);
-
 	// Remove Virtual Conf File
 	this->deleteVirtualConfFileNginx(this->nameProjectNginx);
 
     // Disable Site Command
-    string command = this->disableSiteNginxCmd + " " + this->nameProjectNginx + this->extensionVirtualConfNginx;
+    string command = this->sitesEnablePathNginx + this->nameProjectNginx;
+    command = this->classAllOperationGlobal.getCommandDel(command);
     command = this->classAllOperationGlobal.getCommandSudo(command);
     
     // Execute command : sudo a2dissite nome_projecto.conf
@@ -360,14 +301,14 @@ void AllNginx::reloadRestartNginx(int option) {
     string command;
     switch (option) {
         case 0:
-            command = this->classAllOperationGlobal.getCommandSudo(this->reloadNginxCmd);
+            command = this->classAllOperationGlobal.getCommandSudo(this->restartNginxCmd);
             break;
         case 1:
             command = this->classAllOperationGlobal.getCommandSudo(this->restartNginxCmd);
             break;
         default:
-            command = this->classAllOperationGlobal.getCommandSudo(this->reloadNginxCmd);
-            command += " && " + this->classAllOperationGlobal.getCommandSudo(this->restartNginxCmd);
+            command = this->classAllOperationGlobal.getCommandSudo(this->restartNginxCmd);
+            command += " && " + this->classAllOperationGlobal.getCommandSudo(this->reloadNginxCmd);
     }
 
     // Execute command

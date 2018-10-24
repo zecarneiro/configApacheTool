@@ -7,9 +7,10 @@
 
 #include "../lib/includes.h"
 #include "../lib/AllOperationGlobal.h"
-#include "../lib/AllApache.h"
-#include "../lib/AllCakePHP.h"
 #include "../lib/AllDataBase.h"
+#include "../lib/AllApache.h"
+#include "../lib/AllNginx.h"
+#include "../lib/AllCakePHP.h"
 
 /**
  * EXIT AND RETURN CODE
@@ -20,7 +21,7 @@
 #define _RETURNCODE -1
 
 /* Definition to project */
-class ConfigSiteTool: public AllDataBase, public AllOperationGlobal, private AllApache, public AllCakePHP {
+class ConfigSiteTool: public AllOperationGlobal, public AllDataBase, private AllApache, private AllNginx, public AllCakePHP {
     protected:
         int serverSelected, frameworkSelected, portSelected;
         string nameServerSelected, nameFrameworkSelected;

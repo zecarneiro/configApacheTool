@@ -208,7 +208,19 @@ function installAppByUser(){
 
 # Config Apache
 function configApache(){
+	local phpVersion=$(php -v | grep -i php | cut -d ' ' -f2 | cut -d '.' -f1-2)
+
+	# Enable mod rewrite
 	sudo a2enmod rewrite
+	sudo service apache2 restart
+
+	# Disable mod mpm_event
+	sudo a2dismod mpm_event
+	sudo service apache2 restart
+
+	# Enable mod php
+	sudo a2enmod php$phpVersion
+	sudo service apache2 restart
 
 	# Reload and Restart
 	sudo service apache2 reload

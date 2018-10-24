@@ -3,11 +3,20 @@ server {
     listen [::]:PORTO;
 
     root FULL_PATH_PROJECT;
-    index index.html index.htm index.nginx-debian.html;
+    index index.html index.htm index.php index.py index.nginx-debian.html;
 
-    server_name example.com www.example.com;
+    server_name _;
 
     location / {
             try_files $uri $uri/ =404;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+    }
+
+    location ~ /\.ht {
+        deny all;
     }
 }

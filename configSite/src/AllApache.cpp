@@ -21,8 +21,6 @@ AllApache::AllApache() {
 
     // Insert Default value on data base
     this->insertApacheInfoDB();
-
-    // ps aux | egrep '([n|N][g|G]inx|[h|H]ttpd)' | awk '{ print $1}' | uniq | tail -1
 }
 
 AllApache::~AllApache() {}
@@ -93,9 +91,6 @@ void AllApache::setGroupApache(string fullPath) {
 
     // Execute command
     this->classAllOperationGlobal.executeCommands(command);
-
-    // Set Permission
-    this->setPermissionApache(fullPath);
 }
 
 /**

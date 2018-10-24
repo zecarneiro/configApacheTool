@@ -125,9 +125,10 @@ void AllCakePHP::printActiveProjectCakePHP() {
     if (this->resultDbCakePHP.empty()) {
         cout << "Empty List..." << endl;
     } else {
+        int index = 1;
         cout << "\nList of project on CakePHP" << endl << endl;
         for(vector< vector<string> >::iterator row = this->resultDbCakePHP.begin(); row != this->resultDbCakePHP.end(); ++row) {
-            int index = 1, colIndex = 0;
+            int colIndex = 0;
             for(vector<string>::iterator col = row->begin(); col != row->end(); ++col) {
                 switch (colIndex) {
                     case 0:

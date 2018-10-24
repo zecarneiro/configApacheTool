@@ -16,10 +16,10 @@ class AllNginx {
          * VARIABLES
          ********************************************************************************************/    
         // Commands
-        string enableSiteNginxCmd, disableSiteNginxCmd, restartNginxCmd, reloadNginxCmd;
+        string restartNginxCmd, reloadNginxCmd;
 
         // Nginx variables
-        string pathNginx, portConfFileNginx, sitesAvailablePathNginx, virtualConfTemplateNginx;
+        string pathNginx, portConfFileNginx, sitesAvailablePathNginx, sitesEnablePathNginx, virtualConfTemplateNginx;
         string groupNginx, nameOnDBNginx;
 
         // Project variables
@@ -27,9 +27,6 @@ class AllNginx {
 
         // Data base variables
         vector<vector<string>> resultDbNginx;
-
-        // Other variables
-        string extensionVirtualConfNginx;
 
         /*********************************************************************************************
          * VARIABLES FOR OTHER CLASS

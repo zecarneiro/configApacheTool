@@ -67,7 +67,7 @@ void ConfigSiteTool::saveDeleteInfo(bool isDelete) {
  * Get info of project on DB
  */
 bool ConfigSiteTool::getInfoProjectDB() {
-	string query = "SELECT port, directory "
+	string query = "SELECT ConfigSite.port, ConfigSite.directory "
 		"FROM ConfigSite "
 		"INNER JOIN Server ON ConfigSite.server_id = Server.id "
 		"INNER JOIN Framework ON ConfigSite.framework_id = Framework.id "
@@ -79,12 +79,11 @@ bool ConfigSiteTool::getInfoProjectDB() {
 	this->resultDbConfig = this->execQueryReturnData(query.c_str());
 
 	if (this->resultDbConfig.empty()) {
-		cout << "Not exist " + this->nomeProjecto + " on data base" << endl;
+		cout << "Not exist " + this->nomeProjecto + " on " + this->nameServerSelected + " on data base" << endl;
 		return false;
 	} else {
 		this->oldPorto = this->resultDbConfig[0][0];
 		this->pathWWW = this->resultDbConfig[0][1];
-		cout << this->oldPorto << " " << this->pathWWW << endl;
 		return true;
 	}
 }
@@ -168,9 +167,15 @@ void ConfigSiteTool::configServer(string operation) {
 		case 1: // Apache
 			this->configApache(operation, this->nomeProjecto, this->oldPorto);
 			break;
+		case 2: // NGinx
+			this->configNginx(operation, this->nomeProjecto, this->oldPorto);
+			break;
 	}
 }
 
+/**
+ * Config Framework
+ */
 void ConfigSiteTool::configFramework(string operation) {
 	switch (this->frameworkSelected) {
 		case 1: // CakePHP
@@ -178,6 +183,10 @@ void ConfigSiteTool::configFramework(string operation) {
 			break;
 	}
 }
+
+/**
+ * Set Operation After Enable/Disable on framework
+ */
 
 /*********************************************************************************************
  * PRINT MENU AND SELECT SERVER, FRAMEWORK AND OTHER OPERATION
