@@ -18,7 +18,7 @@ declare functionsFile="$appInstalationPath$appPath/src/functions.sh"
 declare executableAPP="$appInstalationPath$appPath/bin/$appPath -e"
 declare iconAPP="$appInstalationPath$appPath/icons/$appPath.png"
 declare compileCommand="make -C $appInstalationPath$appPath/ -f $appInstalationPath$appPath/Makefile"
-declare phpVersion=$(php -v | grep -i php | cut -d ' ' -f2 | cut -d '.' -f1-2 | head -1)
+declare phpVersion
 declare virtualConfNginx="$appInstalationPath$appPath/virtualConfNginxTemplate"
 
 # Print Messages
@@ -112,6 +112,8 @@ function installPhp(){
 	allPhpApp="$allPhpApp php-tidy php-xmlrpc php-sqlite3 php-fpm"
 
 	eval "$functionsFile -i \"$allPhpApp\""
+
+	phpVersion=$(php -v | grep -i php | cut -d ' ' -f2 | cut -d '.' -f1-2 | head -1)
 	printMessages "Instalation of PHP APPs done..."
 }
 
@@ -256,15 +258,16 @@ function main(){
 		"-i")
 			installConfigSite
 			installOtherApps
+			installServer
+			installPhp
+			installComposer
+			
 			setPathAndOther
 
 			# Compile
 			eval "$compileCommand"
 			echo
 
-			installServer
-			installPhp
-			installComposer
 			installAppByUser
 			configApache
 			configNGinx
