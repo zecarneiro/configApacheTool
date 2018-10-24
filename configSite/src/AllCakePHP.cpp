@@ -78,7 +78,7 @@ void AllCakePHP::newProjectCakePHP(string path, string nameProject) {
  */
 void AllCakePHP::configProjectCakePHP(string path, string nameProject) {
     string fullPath = "\"" + path + "/" + nameProject + "\"";
-    string command = this->configProjectCmd + " " + path;
+    string command = this->configProjectCmd + " " + fullPath;
 
     // Print Info
     cout << "\nConfig project on CakePHP with name: " << nameProject << endl;
