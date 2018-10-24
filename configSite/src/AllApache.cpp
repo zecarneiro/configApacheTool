@@ -107,7 +107,7 @@ void AllApache::setPermissionApache(string fullPath) {
 /**
  * Check if Port is defined on port.conf
  */
-bool AllApache::checkPortsUsedApache(string port) {
+bool AllApache::checkPortsUsedApache(string port, bool useDataBase) {
 	bool portIsUsed = false;
 	string outputToCompared = "Listen " + port;
 	string output, command;
@@ -138,7 +138,7 @@ bool AllApache::checkPortsUsedApache(string port) {
 	// Fecha o ficheiro
 	pclose(fp);
 
-    if (!portIsUsed) {
+    if (!portIsUsed && useDataBase) {
         // Check on Data Base
         string query = 
             "SELECT COUNT(*) "
@@ -173,7 +173,7 @@ void AllApache::setPortApache(string port, string nameProject) {
     command += this->sitesAvailablePathApache + nameProject + this->extensionVirtualConfApache;
 
     // if port is not defined, set the port
-	if (!this->checkPortsUsedApache(port)) {
+	if (!this->checkPortsUsedApache(port, false)) {
         // Construct command
         // Ports conf : sudo sed -i "/Listen 80/a\\Listen PORTOPROJECTO" ports.conf
         string commandPortConf = "-i \"/Listen 80/a\\\\Listen " + port + "\" ";

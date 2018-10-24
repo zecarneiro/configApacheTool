@@ -76,7 +76,7 @@ class AllNginx {
         /*********************************************************************************************
          * CHECK PORT AND PATH
          ********************************************************************************************/
-        bool checkPortsUsedNginx(string);
+        bool checkPortsUsedNginx(string, bool);
 
     public:
         AllNginx();

@@ -15,6 +15,9 @@ ConfigSiteTool::ConfigSiteTool() {
 
 	this->nameServerSelected = "";
 	this->nameFrameworkSelected = "";
+
+	this->onlyInsertedOnDataBase = false;
+	this->checkName = true;
 	
 	this->nomeProjecto = "";
 	this->oldPorto = "";
@@ -44,19 +47,27 @@ void ConfigSiteTool::saveDeleteInfo(bool isDelete) {
 		if (isNameEmpty) cout << "\nName of project can be empty...\n";
 		else setChange = true;
 
-		query = "DELETE FROM ConfigSite where name = '" + this->nomeProjecto + "';";
+		query = 
+			"DELETE FROM ConfigSite "
+			"WHERE name = '" + this->nomeProjecto + "' "
+			"AND server_id = " + this->intToString(this->serverSelected) + ";";
 	} else {
 		if (!isNameEmpty && !isPortEmpty && !isPathEmpty) setChange = true;
 		else cout << "\nName/Port/Path of project can be empty...\n";
 
 		query = "INSERT INTO ConfigSite(name,port,directory,framework_id,server_id) "
-        	"VALUES ("
+        	"SELECT "
 			"'" + this->nomeProjecto + "',"
 			"'" + this->porto + "',"
 			"'" + this->pathWWW + "',"
 			"'" + this->intToString(this->frameworkSelected) + "',"
-			"'" + this->intToString(this->serverSelected) + "'"
-			");"; 
+			"'" + this->intToString(this->serverSelected) + "' "
+			"WHERE "
+			"NOT EXISTS("
+			"SELECT 1 FROM ConfigSite "
+			"INNER JOIN Server ON ConfigSite.server_id = Server.id "
+			"WHERE ConfigSite.name = '" + this->nomeProjecto + "' COLLATE NOCASE "
+			"AND Server.name = '" + this->nameServerSelected + "');";
 	}
 
 	// Execute Query
@@ -185,8 +196,20 @@ void ConfigSiteTool::configFramework(string operation) {
 }
 
 /**
- * Set Operation After Enable/Disable on framework
+ * Check port by Framework
  */
+bool ConfigSiteTool::checkPortByServer(string port) {
+	bool isUsed;
+	switch (this->serverSelected) {
+		case 1: // Apache
+			isUsed = this->checkPortsUsedApache(port, true);
+			break;
+		case 2: // NGinx
+			isUsed = this->checkPortsUsedNginx(port, true);
+			break;
+	}
+	return isUsed;
+}
 
 /*********************************************************************************************
  * PRINT MENU AND SELECT SERVER, FRAMEWORK AND OTHER OPERATION
@@ -316,7 +339,7 @@ int ConfigSiteTool::selectOperation() {
 	cout << "5 - Update existing project(Only Run Composer update) on " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
 	cout << "6 - Activate project already configured(On Server) for " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
 	cout << "7 - Insert already activate project(On Data Base) for " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
-	cout << "8 - Show all active project on " << this->nameFrameworkSelected  << "/" << this->nameServerSelected << endl;
+	cout << "8 - Show all active project on " << this->nameFrameworkSelected << endl;
 	cout << "9 - Show all active project"  << endl;
 	cout << "10 - Back HOME" << endl;
 	cout << "11 - Exit" << endl;
@@ -334,6 +357,8 @@ int ConfigSiteTool::selectOperation() {
 
 	if (option == 11) option = _EXITCODE; // EXIT
 	else if (option == 10) option = _RETURNCODE; // RETURN
+	else if (option == 7) this->onlyInsertedOnDataBase = true;
+	else if (option == 3 || option == 4 || option == 5) this->checkName = false;
 
 	cout << endl;
 
@@ -354,6 +379,37 @@ bool ConfigSiteTool::getNameProject() {
 	this->nomeProjecto = "";
 	cout << "Insert project name(PRESS ENTER TO CANCEL): ";
 	getline(cin, this->nomeProjecto);
+
+	if (this->nomeProjecto.length() != 0 && this->checkName) {
+		string query = 
+			"SELECT COUNT(*) FROM ConfigSite "
+			"INNER JOIN Server ON ConfigSite.server_id = Server.id "
+			"WHERE ConfigSite.name = '" + this->nomeProjecto + "' COLLATE NOCASE "
+			"AND Server.name = '" + this->nameServerSelected + "';";
+
+		// Execute Query
+		this->resultDbConfig = this->execQueryReturnData(query.c_str());
+
+		while(this->stringToInt(this->resultDbConfig[0][0]) > 0) {
+			cout << "Already Exist " + this->nomeProjecto + " using " + this->nameServerSelected << endl;
+
+			this->clearCin();
+			this->nomeProjecto = "";
+			cout << "Insert project name(PRESS ENTER TO CANCEL): ";
+			getline(cin, this->nomeProjecto);
+
+			if (this->nomeProjecto.length() == 0) break;
+
+			// Execute Query
+			query = 
+				"SELECT COUNT(*) FROM ConfigSite "
+				"INNER JOIN Server ON ConfigSite.server_id = Server.id "
+				"WHERE ConfigSite.name = '" + this->nomeProjecto + "' COLLATE NOCASE "
+				"AND Server.name = '" + this->nameServerSelected + "';";
+			this->resultDbConfig = this->execQueryReturnData(query.c_str());
+		}
+	}
+	if (!this->checkName) this->checkName = true;
 	return (this->nomeProjecto.length() == 0) ? true : false;
 }
 
@@ -392,10 +448,15 @@ bool ConfigSiteTool::getPortProject(bool isChange) {
 	if (porto != -1) {
 		// Pede o porto enquanto o portio indicado já esta a ser usado
 		this->porto = this->intToString(porto);
-		while(this->checkPortsUsedApache(this->porto) || porto <= 0) {
+		bool portIsUsed;
+		while(1) {
+			portIsUsed = this->checkPortByServer(this->porto) && !this->onlyInsertedOnDataBase;
+			if (!portIsUsed && porto > 0) break;
+			
+			// Print Messages
 			if (porto <= 0) {
 				cout << "Port is only positive." << endl;
-			} else {
+			} else if (portIsUsed) {
 				cout << "Port inserted is used by other project." << endl;
 			}
 
@@ -479,6 +540,7 @@ void ConfigSiteTool::executeAllNecessaryCommand(int option) {
 			break;
 		case 7: // Insert already activate project(On Data Base)
 			this->setOperationDB(option);
+			this->onlyInsertedOnDataBase = false;
 			break;
 		case 8: // Show all active project by framework and server
 			this->executeCommands("clear && clear");
@@ -566,13 +628,16 @@ void ConfigSiteTool::insertProjectCLI(int argc, string *argv) {
 	}
 
 	// Select Server and Framework
+	int option;
 	while(1) {
 		// Select Server
-		if (this->selectServer() == _EXITCODE) break;
+		option = this->selectServer();
+		if (option == _EXITCODE) break;
 
 		// Select Framework
-		if (this->selectFramework() == _EXITCODE) break;
-		else if (this->selectFramework() == _RETURNCODE) {
+		option = this->selectFramework();
+		if (option == _EXITCODE) break;
+		else if (option == _RETURNCODE) {
 			this->executeCommands("clear");
 			continue;
 		} else {

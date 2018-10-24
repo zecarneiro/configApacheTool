@@ -79,7 +79,7 @@ class AllApache {
         /*********************************************************************************************
          * CHECK PORT AND PATH
          ********************************************************************************************/
-        bool checkPortsUsedApache(string);
+        bool checkPortsUsedApache(string, bool);
 
     public:
         AllApache();

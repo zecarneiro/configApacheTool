@@ -136,7 +136,6 @@ void AllDataBase::createDataBase(){
             "directory VARCHAR(" + to_string(this->lengthPath) + "),"
             "framework_id INTEGER NOT NULL,"
             "server_id INTEGER NOT NULL,"
-            "UNIQUE (name COLLATE NOCASE)," // COLLATE NOCASE : case insensitive
             "FOREIGN KEY(framework_id) REFERENCES Framework(id),"
             "FOREIGN KEY(server_id) REFERENCES Server(id))";
         query = queryCreateConfigSite.c_str();

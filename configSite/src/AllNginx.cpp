@@ -103,19 +103,18 @@ void AllNginx::setPermissionNginx(string fullPath) {
 /**
  * Check if Port is defined on port.conf
  */
-bool AllNginx::checkPortsUsedNginx(string port) {
+bool AllNginx::checkPortsUsedNginx(string port, bool useDataBase) {
     // Check by terminal
     // sudo lsof -i -n | grep nginx | awk '{print $9}' | cut -d ':' -f2 | grep -c port
     string command = "-c " + port;
-    command = "-d ':' -f2 | " + this->classAllOperationGlobal.getCommandGrep(command);
-    command = "nginx | awk '{print $9}' | " + this->classAllOperationGlobal.getCommandCat(command);
+    command = "nginx | awk '{print $9}' | cut -d ':' -f2 | " + this->classAllOperationGlobal.getCommandGrep(command);
     command = "lsof -i -n | " + this->classAllOperationGlobal.getCommandGrep(command);
     command = this->classAllOperationGlobal.getCommandSudo(command);
     string result = this->classAllOperationGlobal.executeCommandsWithOutput(command.c_str());
     result.erase(remove(result.begin(), result.end(), '\n'), result.end());
     bool portIsUsed = this->classAllOperationGlobal.stringToInt(result) > 0;
 
-    if (!portIsUsed) {
+    if (!portIsUsed && useDataBase) {
         // Check on Data Base
         string query = 
             "SELECT COUNT(*) "

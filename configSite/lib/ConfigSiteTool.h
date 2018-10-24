@@ -26,6 +26,7 @@ class ConfigSiteTool: public AllOperationGlobal, public AllDataBase, private All
         int serverSelected, frameworkSelected, portSelected;
         string nameServerSelected, nameFrameworkSelected;
         vector<vector<string>> resultDbConfig;
+        bool onlyInsertedOnDataBase, checkName;
 
         // Project Info
         string nomeProjecto, oldPorto, porto, pathWWW;
@@ -43,6 +44,7 @@ class ConfigSiteTool: public AllOperationGlobal, public AllDataBase, private All
          ********************************************************************************************/
         void configServer(string);
         void configFramework(string);
+        bool checkPortByServer(string);
         
     public:
         ConfigSiteTool();
