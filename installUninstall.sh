@@ -32,7 +32,7 @@ function printMessages(){
 # Install Other Apps
 function installOtherApps(){
 	local allPPAs="ppa:git-core/ppa"
-	local allApps="g++ make git curl libsqlite3-dev"
+	local allApps="g++ make git curl libsqlite3-dev unoconv sendemail"
 
 	eval "$functionsFile -i \"$allApps\" \"$allPPAs\""
 	printMessages "Instalation of APPs done..."
@@ -169,6 +169,10 @@ function installDataBases(){
 		echo "PRESS ENTER TO DEFULT"
 		read -p "Insert User(Defult = root): " user
 		read -p "Insert Password(Defult = root): " password
+
+		if [ -z $password ]; then
+			password="root"
+		fi
 
 		# Set user info on MySQL Or MariaDB
 		if [ ! -z $user ]; then
