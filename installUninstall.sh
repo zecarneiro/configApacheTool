@@ -170,6 +170,10 @@ function installDataBases(){
 		read -p "Insert User(Defult = root): " user
 		read -p "Insert Password(Defult = root): " password
 
+		if [ -z $password ]; then
+			password="root"
+		fi
+
 		# Set user info on MySQL Or MariaDB
 		if [ ! -z $user ]; then
 			local createUser="CREATE USER '$user'@'localhost' IDENTIFIED BY '$password';"
