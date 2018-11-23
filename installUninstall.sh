@@ -32,10 +32,9 @@ function printMessages(){
 # Install Other Apps
 function installOtherApps(){
 	local allPPAs="ppa:git-core/ppa"
-	local allApps="g++ make git curl libsqlite3-dev sendemail"
+	local allApps="g++ make git curl libsqlite3-dev unoconv sendemail"
 
 	eval "$functionsFile -i \"$allApps\" \"$allPPAs\""
-	sudo apt install --no-install-recommends unoconv -y
 	printMessages "Instalation of APPs done..."
 }
 
