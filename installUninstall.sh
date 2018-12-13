@@ -76,7 +76,7 @@ function uninstallConfigSite(){
 function setPathAndOther(){
 	local fileToSetDefaultPath="$appInstalationPath$appPath/lib/includes.h"
 
-	echo "Default full path for projects: $pathWWW" 
+	echo "Default full path for projects: $pathWWW"
 	read -p "Insert full path for projects(Press ENTER for default path): " path
 
 	# Verify if folder exist
@@ -256,6 +256,13 @@ function configNGinx(){
 	printMessages "Config NGinx Done..."
 }
 
+function createAliasCmd(){
+	local aliasName="_WWW_PATH"
+	echo "# Command to go partition Meus@Outros" | tee -a ~/.bashrc > /dev/null
+	echo "alias $aliasName='cd $pathWWW'" | tee -a ~/.bashrc > /dev/null
+	printMessages "Created Alias: $aliasName"
+}
+
 # Main
 function main(){
 	case "$installUninstall" in
@@ -265,7 +272,7 @@ function main(){
 			installServer
 			installPhp
 			installComposer
-			
+
 			setPathAndOther
 
 			# Compile
@@ -276,6 +283,7 @@ function main(){
 			configApache
 			configNGinx
 			installDataBases
+			createAliasCmd
 			;;
 		"-u")
 			uninstallConfigSite
