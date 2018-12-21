@@ -258,9 +258,18 @@ function configNGinx(){
 
 function createAliasCmd(){
 	local aliasName="_WWW_PATH"
-	echo "# Command to go partition Meus@Outros" | tee -a ~/.bashrc > /dev/null
-	echo "alias $aliasName='cd $pathWWW'" | tee -a ~/.bashrc > /dev/null
-	printMessages "Created Alias: $aliasName"
+	local comment="# Command to go partition WWW Path"
+	local -i isSet="$1"
+
+	if [[ $isSet -eq 1 ]]; then
+		echo "$comment" | tee -a ~/.bashrc > /dev/null
+		echo "alias $aliasName='cd $pathWWW'" | tee -a ~/.bashrc > /dev/null
+		printMessages "Created Alias: $aliasName"
+	else
+		sed -i "/$comment/d" ~/.bashrc
+		sed -i "/alias $aliasName/d" ~/.bashrc
+	fi
+	
 }
 
 # Main
@@ -283,10 +292,11 @@ function main(){
 			configApache
 			configNGinx
 			installDataBases
-			createAliasCmd
+			createAliasCmd 1
 			;;
 		"-u")
 			uninstallConfigSite
+			createAliasCmd 0
 			;;
 		*)
             echo "$0 (-i|-u) OPTIONAL(0|1)"
