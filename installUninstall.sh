@@ -74,6 +74,7 @@ function uninstallConfigSite(){
 
 # Set Default path
 function setPathAndOther(){
+	local userServer="www-data"
 	local fileToSetDefaultPath="$appInstalationPath$appPath/lib/includes.h"
 
 	echo "Default full path for projects: $pathWWW"
@@ -86,6 +87,8 @@ function setPathAndOther(){
 
 	# Create pathWWW
 	mkdir -p "$pathWWW"
+	chmod -R 755 "$pathWWW"
+	sudo chown -R :"$userServer" "$pathWWW"
 
 	# Set Default path www on app
 	# sudo sed -i 's#PATH_WWW#localizacao_www#' /opt/configSite/includes.h
