@@ -74,7 +74,7 @@ function uninstallConfigSite(){
 
 # Set Default path
 function setPathAndOther(){
-	local userServer="www-data"
+	#local userServer="www-data"
 	local fileToSetDefaultPath="$appInstalationPath$appPath/lib/includes.h"
 
 	echo "Default full path for projects: $pathWWW"
@@ -87,8 +87,8 @@ function setPathAndOther(){
 
 	# Create pathWWW
 	mkdir -p "$pathWWW"
-	chmod -R 755 "$pathWWW"
-	sudo chown -R :"$userServer" "$pathWWW"
+	#chmod -R 755 "$pathWWW"
+	#sudo chown -R :"$userServer" "$pathWWW"
 
 	# Set Default path www on app
 	# sudo sed -i 's#PATH_WWW#localizacao_www#' /opt/configSite/includes.h
@@ -139,76 +139,25 @@ function installComposer(){
 
 # Install Data Bases
 function installDataBases(){
-	local allServer=""
-
 	echo "1 - MySQL"
 	echo "2 - MariaDB"
 	echo "3 - PostgreSQL"
 
-	echo "All: a1|a2 (1-MySQL|2-MariaDB)"
 	echo "None PRESS ENTER"
 	read -p "Insert Option: " server
 
-	# MySQL
-	if [ "$server" = "1" ]||[ "$server" = "a1" ]; then
-		allServer="mysql-server mysql-client"
-	fi
-
-	# MariaDB
-	if [ "$server" = "2" ]||[ "$server" = "a2" ]; then
-		allServer="mariadb-server mariadb-client"
-	fi
-
-	# PostgreSQL
-	if [ "$server" = "3" ]||[ "$server" = "a1" ]||[ "$server" = "a2" ]; then
-		allServer="$allServer postgresql postgresql-contrib"
-	fi
+	case "$server" in
+		"1") # MySQL
+			eval "$functionsFile -i \"mysql-server mysql-client\""
+			;;
+		"2") # MariaDB
+			eval "$functionsFile -i \"mariadb-server mariadb-client\""
+			;;
+		"3") # PostgreSQL
+			eval "$functionsFile -i \"postgresql postgresql-contrib\""
+	esac
 
 	if [ ! -z $server ]; then
-		# Install
-		eval "$functionsFile -i \"$allServer\""
-
-		printf "\n\n"
-		echo "PRESS ENTER TO DEFULT"
-		read -p "Insert User(Defult = root): " user
-		read -p "Insert Password(Defult = root): " password
-
-		if [ -z $password ]; then
-			password="root"
-		fi
-
-		# Set user info on MySQL Or MariaDB
-		if [ ! -z $user ]; then
-			local createUser="CREATE USER '$user'@'localhost' IDENTIFIED BY '$password';"
-			local setAllPrevileges="GRANT ALL PRIVILEGES ON * . * TO '$user'@'localhost';"
-			local delRootUser="DELETE FROM mysql.user WHERE user = 'root';"
-			local savePrevileges="FLUSH PRIVILEGES;"
-
-			# Execute
-			sudo mysql -u root -e "$createUser"
-			sudo mysql -u root -e "$setAllPrevileges"
-			sudo mysql -u root -e "$savePrevileges"
-			sudo mysql -u $user -e "$delRootUser"
-		else
-			local setPassword="ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$password';"
-			sudo mysql -u root -e "$setPassword"
-		fi
-
-		# Set user info on PostgreSQL
-		if [ ! -z $user ]; then
-			local createUser="sudo -u postgres createuser $user"
-			local setAllPrevileges="grant all privileges on *.* to $user';"
-			local delRootUser="sudo -u postgres dropuser $user"
-
-
-			# Execute
-			sudo mysql -u root -e "$cmdMySQLMariaDB"
-			sudo mysql -u root -e "$setAllPrevileges"
-			sudo mysql -u $user -e "$delRootUser"
-		else
-			local setPassword="ALTER USER postgres PASSWORD '$password';"
-			sudo -u postgres psql -c "$setPassword"
-		fi
 		printMessages "Instalation of Server done..."
 	fi
 }
@@ -260,19 +209,18 @@ function configNGinx(){
 }
 
 function createAliasCmd(){
-	local aliasName="_WWW_PATH"
-	local comment="# Command to go partition WWW Path"
+	local envName="_WWW_PATH"
+	local comment="# Command to go partition _WWW_PATH"
 	local -i isSet="$1"
 
 	if [[ $isSet -eq 1 ]]; then
 		echo "$comment" | tee -a ~/.bashrc > /dev/null
-		echo "alias $aliasName='cd $pathWWW'" | tee -a ~/.bashrc > /dev/null
-		printMessages "Created Alias: $aliasName"
+		echo "export $envName=$pathWWW" | tee -a ~/.bashrc > /dev/null
+		printMessages "Created Envoriement Name: $envName"
 	else
 		sed -i "/$comment/d" ~/.bashrc
-		sed -i "/alias $aliasName/d" ~/.bashrc
+		sed -i "/export $envName/d" ~/.bashrc
 	fi
-	
 }
 
 # Main
