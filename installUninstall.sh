@@ -20,6 +20,7 @@ declare iconAPP="$appInstalationPath$appPath/icons/$appPath.png"
 declare compileCommand="make -C $appInstalationPath$appPath/ -f $appInstalationPath$appPath/Makefile"
 declare phpVersion
 declare virtualConfNginx="$appInstalationPath$appPath/virtualConfNginxTemplate"
+declare sudoersPath="/etc/sudoers"
 
 # Print Messages
 function printMessages(){
@@ -32,7 +33,7 @@ function printMessages(){
 # Install Other Apps
 function installOtherApps(){
 	local allPPAs="ppa:git-core/ppa"
-	local allApps="g++ make git curl libsqlite3-dev unoconv sendemail"
+	local allApps="g++ make git curl libsqlite3-dev unoconv sendemail inotify-tools"
 
 	eval "$functionsFile -i \"$allApps\" \"$allPPAs\""
 	printMessages "Instalation of APPs done..."
@@ -74,7 +75,7 @@ function uninstallConfigSite(){
 
 # Set Default path
 function setPathAndOther(){
-	#local userServer="www-data"
+	local userServer="www-data"
 	local fileToSetDefaultPath="$appInstalationPath$appPath/lib/includes.h"
 
 	echo "Default full path for projects: $pathWWW"
@@ -87,8 +88,8 @@ function setPathAndOther(){
 
 	# Create pathWWW
 	mkdir -p "$pathWWW"
-	#chmod -R 755 "$pathWWW"
-	#sudo chown -R :"$userServer" "$pathWWW"
+	chmod -R 755 "$pathWWW"
+	sudo chown -R :"$userServer" "$pathWWW"
 
 	# Set Default path www on app
 	# sudo sed -i 's#PATH_WWW#localizacao_www#' /opt/configSite/includes.h
@@ -254,6 +255,34 @@ function createAliasCmd(){
 	fi
 }
 
+function installScriptMonitor(){
+	local -i isSet="$1"
+	local scriptMonitorName="setOwnerPermissionNewEntry.sh"
+	local scriptMonitorPath="$appInstalationPath$appPath/src/$scriptMonitorName"
+	local commentMonitor="# ConfigSiteTool ScriptMonitor"
+	local autostartMonitor="$pathHome/.config/autostart/$appPath.desktop"
+
+	if [[ $isSet -eq 1 ]]; then
+		echo "$commentMonitor" | sudo tee -a $sudoersPath > /dev/null
+		echo "ALL ALL=(ALL) NOPASSWD:$scriptMonitorPath" | sudo tee -a $sudoersPath > /dev/null
+		
+		# Create desktop file
+		eval "$functionsFile -dFile \"$appPath\" \"$appPath.desktop\" \"$scriptMonitorPath\" \"$iconAPP\" 1"
+
+		# Execute ScriptMonitor
+		eval "$scriptMonitorPath $pathWWW &"
+
+		printMessages "Script Monitor Instaled.."
+	else
+		scriptMonitorPath="\/opt\/configSite\/src\/setOwnerPermissionNewEntry.sh"
+		sudo sed -i "/$commentMonitor/d" $sudoersPath
+		sudo sed -i "/ALL ALL=(ALL) NOPASSWD:$scriptMonitorPath/d" $sudoersPath
+		if [ -d "$autostartMonitor" ]; then
+			rm "$autostartMonitor"
+		fi
+	fi
+}
+
 # Main
 function main(){
 	case "$installUninstall" in
@@ -275,10 +304,12 @@ function main(){
 			configNGinx
 			installDataBases
 			createAliasCmd 1
+			installScriptMonitor 1
 			;;
 		"-u")
 			uninstallConfigSite
 			createAliasCmd 0
+			installScriptMonitor 0
 			;;
 		*)
             echo "$0 (-i|-u) OPTIONAL(0|1)"
