@@ -21,6 +21,9 @@ declare compileCommand="make -C $appInstalationPath$appPath/ -f $appInstalationP
 declare phpVersion
 declare virtualConfNginx="$appInstalationPath$appPath/virtualConfNginxTemplate"
 declare sudoersPath="/etc/sudoers"
+declare userServer="www-data"
+declare projectPermission="755"
+declare appPathConfig="$pathHome/.config/configSite"
 
 # Print Messages
 function printMessages(){
@@ -33,7 +36,7 @@ function printMessages(){
 # Install Other Apps
 function installOtherApps(){
 	local allPPAs="ppa:git-core/ppa"
-	local allApps="g++ make git curl libsqlite3-dev unoconv sendemail inotify-tools"
+	local allApps="g++ make git curl libsqlite3-dev unoconv sendemail incron"
 
 	eval "$functionsFile -i \"$allApps\" \"$allPPAs\""
 	printMessages "Instalation of APPs done..."
@@ -41,14 +44,13 @@ function installOtherApps(){
 
 # Install ConfigSite
 function installConfigSite(){
-	local permission="755"
 	local atalhoFile="$pathHome/.local/share/applications/$appPath.desktop"
 
 	# Copy app path to instalation path
 	sudo cp -r $appPath $appInstalationPath
 
 	# Set Permission
-	sudo chmod -R $permission "$appInstalationPath$appPath"
+	sudo chmod -R $projectPermission "$appInstalationPath$appPath"
 
 	# Create desktop file
 	eval "$functionsFile -dFile \"$appPath\" \"$appPath.desktop\" \"$executableAPP\" \"$iconAPP\" 0"
@@ -75,7 +77,6 @@ function uninstallConfigSite(){
 
 # Set Default path
 function setPathAndOther(){
-	local userServer="www-data"
 	local fileToSetDefaultPath="$appInstalationPath$appPath/lib/includes.h"
 
 	echo "Default full path for projects: $pathWWW"
@@ -248,39 +249,34 @@ function createAliasCmd(){
 	if [[ $isSet -eq 1 ]]; then
 		echo "$comment" | tee -a ~/.bashrc > /dev/null
 		echo "export $envName=$pathWWW" | tee -a ~/.bashrc > /dev/null
-		printMessages "Created Envoriement Name: $envName"
 	else
 		sed -i "/$comment/d" ~/.bashrc
 		sed -i "/export $envName/d" ~/.bashrc
 	fi
+	printMessages "Created/Delete Envoriement Name: $envName"
 }
 
-function installScriptMonitor(){
+function setMonitorWebPath(){
+	local incronFileAllow="/etc/incron.allow"
+	local incronRootKey="root"
+	local setOwnerWebPath="$pathWWW IN_CREATE /bin/chown -R :$userServer $pathWWW"
+	local setPermissionWebPath="$pathWWW IN_CREATE /bin/chmod -R 755 $pathWWW"
+	local isRootSet="$(sudo cat $incronFileAllow | grep -ic $incronRootKey)"
+	local incronFileConfig="/var/spool/incron/$incronRootKey"
 	local -i isSet="$1"
-	local scriptMonitorName="setOwnerPermissionNewEntry.sh"
-	local scriptMonitorPath="$appInstalationPath$appPath/src/$scriptMonitorName"
-	local commentMonitor="# ConfigSiteTool ScriptMonitor"
-	local autostartMonitor="$pathHome/.config/autostart/$appPath.desktop"
 
-	if [[ $isSet -eq 1 ]]; then
-		echo "$commentMonitor" | sudo tee -a $sudoersPath > /dev/null
-		echo "ALL ALL=(ALL) NOPASSWD:$scriptMonitorPath" | sudo tee -a $sudoersPath > /dev/null
-		
-		# Create desktop file
-		eval "$functionsFile -dFile \"$appPath\" \"$appPath.desktop\" \"$scriptMonitorPath\" \"$iconAPP\" 1"
-
-		# Execute ScriptMonitor
-		eval "$scriptMonitorPath $pathWWW &"
-
-		printMessages "Script Monitor Instaled.."
-	else
-		scriptMonitorPath="\/opt\/configSite\/src\/setOwnerPermissionNewEntry.sh"
-		sudo sed -i "/$commentMonitor/d" $sudoersPath
-		sudo sed -i "/ALL ALL=(ALL) NOPASSWD:$scriptMonitorPath/d" $sudoersPath
-		if [ -d "$autostartMonitor" ]; then
-			rm "$autostartMonitor"
-		fi
+	if [ $isRootSet -lt 1 ]; then
+		echo "$incronRootKey" | sudo tee -a $incronFileAllow > /dev/null
 	fi
+
+	if [ $isSet -eq 1 ]; then
+		echo "$setOwnerWebPath" | sudo tee "$incronFileConfig" > /dev/null
+		echo "$setPermissionWebPath" | sudo tee -a "$incronFileConfig" > /dev/null
+	else
+		sudo cat "$incronFileConfig" | grep -v "$setOwnerWebPath" | sudo tee "$incronFileConfig" > /dev/null
+		sudo cat "$incronFileConfig" | grep -v "$setPermissionWebPath" | sudo tee "$incronFileConfig" > /dev/null
+	fi
+	printMessages "Set/Unset Monitor Web Path config done..."
 }
 
 # Main
@@ -304,12 +300,12 @@ function main(){
 			configNGinx
 			installDataBases
 			createAliasCmd 1
-			installScriptMonitor 1
+			setMonitorWebPath 1
 			;;
 		"-u")
 			uninstallConfigSite
 			createAliasCmd 0
-			installScriptMonitor 0
+			setMonitorWebPath 0
 			;;
 		*)
             echo "$0 (-i|-u) OPTIONAL(0|1)"
