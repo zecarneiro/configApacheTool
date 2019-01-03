@@ -137,6 +137,24 @@ function installComposer(){
 	fi
 }
 
+function defaultOptionsDBFirstConfig(){
+	local -i option="$1"
+	
+	if [ $option -eq 0 ]||[ $option -eq 1 ]; then
+		printf "\n### CONFIG OPTIONS FOR MariaDB ###\n"
+		echo "Enter current password for root (enter for none): Just press the Enter"
+		echo "Set root password? [Y/n]: Y"
+		echo "New password: Enter password\n"
+		echo "Re-enter new password: Repeat password"
+		echo "Remove anonymous users? [Y/n]: Y"
+		echo "Disallow root login remotely? [Y/n]: Y"
+		echo "Remove test database and access to it? [Y/n]: Y"
+		printf "Reload privilege tables now? [Y/n]: Y\n"
+	elif [ $option -eq 2 ]; then
+		echo "CONFIG OPTIONS FOR POSTGRESQL"
+	fi
+}
+
 # Install Data Bases
 function installDataBases(){
 	echo "1 - MySQL"
@@ -149,12 +167,25 @@ function installDataBases(){
 	case "$server" in
 		"1") # MySQL
 			eval "$functionsFile -i \"mysql-server mysql-client\""
+			defaultOptionsDBFirstConfig 0
+			read -p "Insert your password(Press to Default: root): " password
+			if [ -z $password ]; then
+				password="root"
+			fi
+			sudo mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$password';"
+			sudo systemctl restart mysql.service
 			;;
 		"2") # MariaDB
 			eval "$functionsFile -i \"mariadb-server mariadb-client\""
+			defaultOptionsDBFirstConfig 1
+			sudo mysql_secure_installation
+			sudo systemctl restart mariadb.service
+			sudo mariadb -u root -p mysql -e "update user set plugin=' ' where User='root';"
+			sudo systemctl restart mariadb.service
 			;;
 		"3") # PostgreSQL
 			eval "$functionsFile -i \"postgresql postgresql-contrib\""
+			defaultOptionsDBFirstConfig 2
 	esac
 
 	if [ ! -z $server ]; then
