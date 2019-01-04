@@ -36,7 +36,7 @@ function printMessages(){
 # Install Other Apps
 function installOtherApps(){
 	local allPPAs="ppa:git-core/ppa"
-	local allApps="g++ make git curl libsqlite3-dev unoconv sendemail incron"
+	local allApps="g++ make git curl libsqlite3-dev unoconv sendemail inotify-tools"
 
 	eval "$functionsFile -i \"$allApps\" \"$allPPAs\""
 	printMessages "Instalation of APPs done..."
@@ -257,24 +257,36 @@ function createAliasCmd(){
 }
 
 function setMonitorWebPath(){
-	local incronFileAllow="/etc/incron.allow"
-	local incronRootKey="root"
-	local setOwnerWebPath="$pathWWW IN_CREATE /bin/chown -R :$userServer $pathWWW"
-	local setPermissionWebPath="$pathWWW IN_CREATE /bin/chmod -R 755 $pathWWW"
-	local isRootSet="$(sudo cat $incronFileAllow | grep -ic $incronRootKey)"
-	local incronFileConfig="/var/spool/incron/$incronRootKey"
+	local serviceMonitorPath="/etc/systemd/system"
+	local serviceName="configSiteSetOwnerPermission.service"
+	local scriptMonitorName="setOwnerPermissionMonitor.sh"
 	local -i isSet="$1"
 
-	if [ $isRootSet -lt 1 ]; then
-		echo "$incronRootKey" | sudo tee -a $incronFileAllow > /dev/null
-	fi
-
 	if [ $isSet -eq 1 ]; then
-		echo "$setOwnerWebPath" | sudo tee "$incronFileConfig" > /dev/null
-		echo "$setPermissionWebPath" | sudo tee -a "$incronFileConfig" > /dev/null
+		printf "[Unit]\n
+			Description=Set Owner Permission Monitor\n
+			After=multi-user.target\n
+			[Service]\n
+			Type=simple\n
+			ExecStart=$appInstalationPath$appPath/src/$scriptMonitorName
+			User=root
+			WorkingDirectory=$pathWWW
+			Restart=no
+			[Install]
+			WantedBy=multi-user.target\n" | sudo tee $serviceMonitorPath/$serviceName > /dev/null
+
+		sudo chmod 755 $serviceMonitorPath/$serviceName
+		sudo systemctl enable $serviceName
+		sudo systemctl daemon-reload
+		sudo systemctl start $serviceName
 	else
-		sudo cat "$incronFileConfig" | grep -v "$setOwnerWebPath" | sudo tee "$incronFileConfig" > /dev/null
-		sudo cat "$incronFileConfig" | grep -v "$setPermissionWebPath" | sudo tee "$incronFileConfig" > /dev/null
+		sudo systemctl stop $serviceName
+		sudo systemctl disable $serviceName
+		sudo systemctl daemon-reload
+
+		if [ -f $serviceMonitorPath/$serviceName ]; then
+			sudo rm $serviceMonitorPath/$serviceName
+		fi
 	fi
 	printMessages "Set/Unset Monitor Web Path config done..."
 }
