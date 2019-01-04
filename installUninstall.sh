@@ -88,8 +88,8 @@ function setPathAndOther(){
 	fi
 
 	# Create pathWWW
-	mkdir -p "$pathWWW"
-	chmod -R 755 "$pathWWW"
+	sudo mkdir -p "$pathWWW"
+	sudo chmod -R 755 "$pathWWW"
 	sudo chown -R :"$userServer" "$pathWWW"
 
 	# Set Default path www on app
