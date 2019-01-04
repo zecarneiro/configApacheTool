@@ -37,7 +37,7 @@ function main(){
             isGitDir="$(echo "$DirFile" | grep -ci $isGitDir)"
             if [ $isGitDir -le 0 ]; then
                 # Log to file
-                echo "$DirFile" | sudo tee -a "$wwwPath/$fileLogService" > /dev/null
+                # echo "$DirFile" | sudo tee -a "$wwwPath/$fileLogService" > /dev/null
 
                 # Exec operation
                 sudo chmod -R 755 "$DirFile"
