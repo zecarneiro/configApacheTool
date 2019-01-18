@@ -10,6 +10,7 @@ declare forceInstallComposer="$2"
 pathHome=$( echo $HOME )
 nameWWW="www"
 pathWWW="$pathHome/$nameWWW"
+userPathWWW=""
 serverInstaled="1" # Default
 
 # App Var
@@ -91,7 +92,12 @@ function setPathAndOther(){
 	# Create pathWWW
 	sudo mkdir -p "$pathWWW"
 	sudo chmod -R 755 "$pathWWW"
-	sudo chown -R :"$userServer" "$pathWWW"
+
+	if [ -z "$userPathWWW" ]; then
+		sudo chown -R "$USER":"$userServer" "$pathWWW"
+	else
+		sudo chown -R "$userPathWWW":"$userServer" "$pathWWW"
+	fi
 
 	# Set Default path www on app
 	# sudo sed -i 's#PATH_WWW#localizacao_www#' /opt/configSite/includes.h
