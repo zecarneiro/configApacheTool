@@ -10,6 +10,7 @@ declare forceInstallComposer="$2"
 pathHome=$( echo $HOME )
 nameWWW="www"
 pathWWW="$pathHome/$nameWWW"
+serverInstaled="1" # Default
 
 # App Var
 declare appPath="configSite"
@@ -104,7 +105,30 @@ function setPathAndOther(){
 
 # Instalation of servers
 function installServer(){
-	local allServerApp="apache2 nginx"
+	local allServerApp
+
+	echo "1 - Apache2"
+	echo "2 - Nginx"
+	echo "3 - All"
+	echo "PRESS ENTER TO DEFAULT(Apache2)"
+	read -p "Insert Option: " server
+
+	if [ -z $server ]; then
+		server="1"
+	fi
+
+	case "$server" in
+		"1") # Apache2
+			allServerApp="apache2"
+			;;
+		"2") # Nginx
+			allServerApp="nginx"
+			serverInstaled="2"
+			;;
+		"3") # Nginx
+			allServerApp="apache2 nginx"
+			serverInstaled="-1"
+	esac
 
 	eval "$functionsFile -i \"$allServerApp\""
 	printMessages "Instalation of servers done..."
@@ -308,8 +332,18 @@ function main(){
 			echo
 
 			installAppByUser
-			configApache
-			configNGinx
+			case "$serverInstaled" in
+				"1")
+					configApache
+					;;
+				"2")
+					configNGinx
+					;;
+				"-1")
+					configApache
+					configNGinx
+					;;
+			esac
 			installDataBases
 			createAliasCmd 1
 			setMonitorWebPath 1
