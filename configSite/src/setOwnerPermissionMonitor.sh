@@ -7,6 +7,7 @@ declare pwdPath="$(echo $PWD)"
 declare fileLogService=".logService"
 declare nameOwnerServer="www-data"
 declare isGitDir=".git"
+declare levelPermissionNewPathFile="755"
 
 # Main
 function main(){
@@ -40,8 +41,12 @@ function main(){
                 # echo "$DirFile" | sudo tee -a "$wwwPath/$fileLogService" > /dev/null
 
                 # Exec operation
-                sudo chmod -R 755 "$DirFile"
-                sudo chown -R :$nameOwnerServer "$DirFile"
+                if [ ! -z $levelPermissionNewPathFile ]; then
+                    sudo chmod -R "$levelPermissionNewPathFile" "$DirFile"
+                fi
+                if [ ! -z $nameOwnerServer ]; then
+                    sudo chown -R :$nameOwnerServer "$DirFile"
+                fi
             fi
         done
     fi
