@@ -10,6 +10,8 @@ declare forceInstallComposer="$2"
 pathHome=$( echo $HOME )
 nameWWW="www"
 pathWWW="$pathHome/$nameWWW"
+userPathWWW=""
+serverInstaled="1" # Default
 
 # App Var
 declare appPath="configSite"
@@ -90,7 +92,12 @@ function setPathAndOther(){
 	# Create pathWWW
 	sudo mkdir -p "$pathWWW"
 	sudo chmod -R 755 "$pathWWW"
-	sudo chown -R :"$userServer" "$pathWWW"
+
+	if [ -z "$userPathWWW" ]; then
+		sudo chown -R "$USER":"$userServer" "$pathWWW"
+	else
+		sudo chown -R "$userPathWWW":"$userServer" "$pathWWW"
+	fi
 
 	# Set Default path www on app
 	# sudo sed -i 's#PATH_WWW#localizacao_www#' /opt/configSite/includes.h
@@ -104,7 +111,30 @@ function setPathAndOther(){
 
 # Instalation of servers
 function installServer(){
-	local allServerApp="apache2 nginx"
+	local allServerApp
+
+	echo "1 - Apache2"
+	echo "2 - Nginx"
+	echo "3 - All"
+	echo "PRESS ENTER TO DEFAULT(Apache2)"
+	read -p "Insert Option: " server
+
+	if [ -z $server ]; then
+		server="1"
+	fi
+
+	case "$server" in
+		"1") # Apache2
+			allServerApp="apache2"
+			;;
+		"2") # Nginx
+			allServerApp="nginx"
+			serverInstaled="2"
+			;;
+		"3") # Nginx
+			allServerApp="apache2 nginx"
+			serverInstaled="-1"
+	esac
 
 	eval "$functionsFile -i \"$allServerApp\""
 	printMessages "Instalation of servers done..."
@@ -308,8 +338,18 @@ function main(){
 			echo
 
 			installAppByUser
-			configApache
-			configNGinx
+			case "$serverInstaled" in
+				"1")
+					configApache
+					;;
+				"2")
+					configNGinx
+					;;
+				"-1")
+					configApache
+					configNGinx
+					;;
+			esac
 			installDataBases
 			createAliasCmd 1
 			setMonitorWebPath 1
