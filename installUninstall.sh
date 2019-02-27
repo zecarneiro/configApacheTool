@@ -352,12 +352,12 @@ function main(){
 			esac
 			installDataBases
 			createAliasCmd 1
-			setMonitorWebPath 1
+			# setMonitorWebPath 1
 			;;
 		"-u")
 			uninstallConfigSite
 			createAliasCmd 0
-			setMonitorWebPath 0
+			# setMonitorWebPath 0
 			;;
 		*)
             echo "$0 (-i|-u) OPTIONAL(0|1)"
