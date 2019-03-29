@@ -142,7 +142,7 @@ function installServer(){
 
 # Install PHP apps
 function installPhp(){
-	local allPhpApp="snmp-mibs-downloader php libapache2-mod-php php-mysql php-intl php-mbstring php-xml php-curl php-gd"
+	local allPhpApp="snmp-mibs-downloader libapache2-mod-php php-mysql php-intl php-mbstring php-xml php-curl php-gd"
 	allPhpApp="$allPhpApp php-pear php-imagick php-imap php-memcache php-pspell php-recode php-snmp"
 	allPhpApp="$allPhpApp php-tidy php-xmlrpc php-sqlite3 php-fpm"
 
