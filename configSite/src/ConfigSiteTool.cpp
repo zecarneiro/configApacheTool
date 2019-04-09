@@ -342,20 +342,21 @@ int ConfigSiteTool::selectOperation() {
 	cout << "8 - Show all active project on " << this->nameFrameworkSelected << endl;
 	cout << "9 - Show all active project"  << endl;
 	cout << "10 - Back HOME" << endl;
-	cout << "11 - Exit" << endl;
+	cout << "11 - Only Run Compose Install" << endl;
+	cout << "12 - Exit" << endl;
 	cout << "Insert an option: ";
 
 	do{
 		option = this->getOlyInteger("Insert only integers: ");
 
 		// Invalid Inserted
-		if(option < 1 || option > 10){
+		if(option < 1 || option > 12){
 			cout << "\nInsert valid option only!!!"<<endl;
 			cout << "Insert an option: ";
 		}
-	}while (option < 1 || option > 11);
+	}while (option < 1 || option > 12);
 
-	if (option == 11) option = _EXITCODE; // EXIT
+	if (option == 12) option = _EXITCODE; // EXIT
 	else if (option == 10) option = _RETURNCODE; // RETURN
 	else if (option == 7) this->onlyInsertedOnDataBase = true;
 	else if (option == 3 || option == 4 || option == 5) this->checkName = false;
@@ -495,6 +496,11 @@ bool ConfigSiteTool::executeOptionSelected(int option) {
 		isCancel = this->getNameProject();
 	} else if (option == 8 || option == 9) {
 		isCancel = false;
+	} else if (option == 11) {
+		isCancel = this->getNameProject();
+		if (!isCancel) {
+			this->getPathProject();
+		}
 	}
     return isCancel;
 }
@@ -549,6 +555,9 @@ void ConfigSiteTool::executeAllNecessaryCommand(int option) {
 		case 9: // Show all active project
 			this->executeCommands("clear && clear");
 			this->printActiveProject();
+			break;
+		case 11: // Only Run Compose Install
+			this->configFramework("config");
 			break;
 	}
 }

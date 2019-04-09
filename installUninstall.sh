@@ -142,7 +142,7 @@ function installServer(){
 
 # Install PHP apps
 function installPhp(){
-	local allPhpApp="snmp-mibs-downloader php libapache2-mod-php php-mysql php-intl php-mbstring php-xml php-curl php-gd"
+	local allPhpApp="snmp-mibs-downloader libapache2-mod-php php-mysql php-intl php-mbstring php-xml php-curl php-gd"
 	allPhpApp="$allPhpApp php-pear php-imagick php-imap php-memcache php-pspell php-recode php-snmp"
 	allPhpApp="$allPhpApp php-tidy php-xmlrpc php-sqlite3 php-fpm"
 
@@ -293,22 +293,25 @@ function setMonitorWebPath(){
 	local -i isSet="$1"
 
 	if [ $isSet -eq 1 ]; then
-		printf "[Unit]\n
-			Description=Set Owner Permission Monitor\n
-			After=multi-user.target\n
-			[Service]\n
-			Type=simple\n
-			ExecStart=$appInstalationPath$appPath/src/$scriptMonitorName
-			User=root
-			WorkingDirectory=$pathWWW
-			Restart=no
-			[Install]
-			WantedBy=multi-user.target\n" | sudo tee $serviceMonitorPath/$serviceName > /dev/null
+		read -p "Do you want install Set Owner Permission Monitor?[y/n] " response
+		if [ -n "$response" ]&&[ "$response" = "y" ]; then
+			printf "[Unit]\n
+				Description=Set Owner Permission Monitor\n
+				After=multi-user.target\n
+				[Service]\n
+				Type=simple\n
+				ExecStart=$appInstalationPath$appPath/src/$scriptMonitorName
+				User=root
+				WorkingDirectory=$pathWWW
+				Restart=no
+				[Install]
+				WantedBy=multi-user.target\n" | sudo tee $serviceMonitorPath/$serviceName > /dev/null
 
-		sudo chmod 755 $serviceMonitorPath/$serviceName
-		sudo systemctl enable $serviceName
-		sudo systemctl daemon-reload
-		sudo systemctl start $serviceName
+			sudo chmod 755 $serviceMonitorPath/$serviceName
+			sudo systemctl enable $serviceName
+			sudo systemctl daemon-reload
+			sudo systemctl start $serviceName
+		fi
 	else
 		sudo systemctl stop $serviceName
 		sudo systemctl disable $serviceName
